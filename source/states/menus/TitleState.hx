@@ -96,17 +96,6 @@ class TitleState extends MusicBeatState
 
 	override public function create():Void
 	{
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
-
-		FlxG.game.focusLostFramerate = 60;
-		FlxG.sound.muteKeys = muteKeys;
-		FlxG.sound.volumeDownKeys = volumeDownKeys;
-		FlxG.sound.volumeUpKeys = volumeUpKeys;
-		FlxG.keys.preventDefaultKeys = [TAB];
-
-		PlayerSettings.init();
-
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		// DEBUG BULLSHIT
@@ -114,67 +103,23 @@ class TitleState extends MusicBeatState
 		swagShader = new ColorSwap();
 		super.create();
 
-		FlxG.save.bind('funkin', 'ninjamuffin99');
-
-		ClientPrefs.loadPrefs();
-
-		Highscore.load();
-
-		// IGNORE THIS!!!
 		titleJSON = Json.parse(Paths.getTextFromFile('images/gfDanceTitle.json'));
 
 		if (!initialized)
 		{
-			if (FlxG.save.data != null && FlxG.save.data.fullscreen)
-			{
-				FlxG.fullscreen = FlxG.save.data.fullscreen;
-				// trace('LOADED FULLSCREEN SETTING!!');
-			}
 			persistentUpdate = true;
 			persistentDraw = true;
 		}
 
-		if (FlxG.save.data.weekCompleted != null)
-		{
-			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
-		}
-
-		FlxG.mouse.visible = false;
-		#if FREEPLAY
-		MusicBeatState.switchState(new FreeplayState());
-		#elseif CHARTING
-		MusicBeatState.switchState(new ChartingState());
-		#else
-		if (FlxG.save.data.flashing == null && !FlashingState.leftState)
-		{
-			FlxTransitionableState.skipNextTransIn = true;
-			FlxTransitionableState.skipNextTransOut = true;
-			MusicBeatState.switchState(new FlashingState());
-		}
+		if (initialized)
+			startIntro();
 		else
 		{
-			#if desktop
-			if (!DiscordClient.isInitialized)
+			new FlxTimer().start(1, function(tmr:FlxTimer)
 			{
-				DiscordClient.initialize();
-				Application.current.onExit.add(function(exitCode)
-				{
-					DiscordClient.shutdown();
-				});
-			}
-			#end
-
-			if (initialized)
 				startIntro();
-			else
-			{
-				new FlxTimer().start(1, function(tmr:FlxTimer)
-				{
-					startIntro();
-				});
-			}
+			});
 		}
-		#end
 	}
 
 	var logoBl:FlxSprite;
