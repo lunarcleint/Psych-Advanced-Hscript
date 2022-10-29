@@ -6,7 +6,9 @@ import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxSave;
 import input.Controls;
 import input.PlayerSettings;
+import openfl.Lib;
 import states.menus.TitleState;
+import util.CoolUtil;
 
 class ClientPrefs
 {
@@ -112,10 +114,10 @@ class ClientPrefs
 		FlxG.save.flush();
 
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99'); // Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
+		save.bind('controls_v2',
+			CoolUtil.formatBindString(Lib.application.meta.get("company"))); // Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
 		save.data.customControls = keyBinds;
 		save.flush();
-		FlxG.log.add("Settings saved!");
 	}
 
 	public static function loadPrefs()
@@ -271,7 +273,7 @@ class ClientPrefs
 			comboStacking = FlxG.save.data.comboStacking;
 
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99');
+		save.bind('controls_v2', CoolUtil.formatBindString(Lib.application.meta.get('company')));
 		if (save != null && save.data.customControls != null)
 		{
 			var loadedControls:Map<String, Array<FlxKey>> = save.data.customControls;

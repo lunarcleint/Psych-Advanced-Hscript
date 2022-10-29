@@ -11,6 +11,7 @@ import lime.app.Application;
 import openfl.Lib;
 import states.menus.StoryMenuState;
 import states.menus.TitleState;
+import util.CoolUtil;
 import util.Discord.DiscordClient;
 
 class Init extends FlxState
@@ -34,12 +35,12 @@ class Init extends FlxState
 		cpp.NativeGc.run(true);
 		#end
 
+		ClientPrefs.loadDefaultKeys();
+
 		FlxG.autoPause = true;
 
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
-
-		ClientPrefs.loadDefaultKeys();
 
 		FlxG.game.focusLostFramerate = 60;
 		FlxG.sound.muteKeys = TitleState.muteKeys;
@@ -51,7 +52,7 @@ class Init extends FlxState
 
 		PlayerSettings.init();
 
-		FlxG.save.bind(Lib.application.meta.get("file"), Lib.application.meta.get("company"));
+		FlxG.save.bind(CoolUtil.formatBindString(Lib.application.meta.get("file")), CoolUtil.formatBindString(Lib.application.meta.get("company")));
 
 		ClientPrefs.loadPrefs();
 

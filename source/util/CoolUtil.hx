@@ -150,4 +150,18 @@ class CoolUtil
 		FlxG.openURL(site);
 		#end
 	}
+
+	public static final formatNotAllowedChars:Array<String> = ["~", "%", "&", ";", ":", '/', '"', "'", "<", ">", "?", "#", " ", "!"];
+
+	public static function formatBindString(str:String):String
+	{
+		var finalStr = str;
+
+		for (notAllowed in formatNotAllowedChars)
+		{
+			finalStr = StringTools.replace(finalStr, notAllowed, "");
+		}
+
+		return finalStr.toLowerCase();
+	}
 }
