@@ -1,5 +1,6 @@
 package openfl.display;
 
+import data.ClientPrefs;
 import flixel.math.FlxMath;
 import haxe.Timer;
 import openfl.events.Event;

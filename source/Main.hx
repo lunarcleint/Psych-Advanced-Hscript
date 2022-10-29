@@ -1,5 +1,6 @@
 package;
 
+import data.ClientPrefs;
 import flixel.FlxG;
 import flixel.FlxGame;
 import flixel.FlxState;
@@ -10,12 +11,12 @@ import openfl.display.FPS;
 import openfl.display.Sprite;
 import openfl.display.StageScaleMode;
 import openfl.events.Event;
+import states.menus.*;
 
 using StringTools;
 
 // crash handler stuff
 #if CRASH_HANDLER
-import Discord.DiscordClient;
 import haxe.CallStack;
 import haxe.io.Path;
 import lime.app.Application;
@@ -23,6 +24,7 @@ import openfl.events.UncaughtErrorEvent;
 import sys.FileSystem;
 import sys.io.File;
 import sys.io.Process;
+import util.Discord.DiscordClient;
 #end
 
 class Main extends Sprite
