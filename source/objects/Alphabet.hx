@@ -33,6 +33,7 @@ class Alphabet extends FlxSpriteGroup
 	public var targetY:Int = 0;
 	public var changeX:Bool = true;
 	public var changeY:Bool = true;
+	public var instantLerp:Bool = false;
 
 	public var alignment(default, set):Alignment = LEFT;
 	public var scaleX(default, set):Float = 1;
@@ -165,11 +166,18 @@ class Alphabet extends FlxSpriteGroup
 	{
 		if (isMenuItem)
 		{
-			var lerpVal:Float = CoolUtil.boundTo(elapsed * 9.6, 0, 1);
-			if (changeX)
-				x = FlxMath.lerp(x, (targetY * distancePerItem.x) + startPosition.x, lerpVal);
-			if (changeY)
-				y = FlxMath.lerp(y, (targetY * 1.3 * distancePerItem.y) + startPosition.y, lerpVal);
+			if (instantLerp)
+			{
+				setPosition((targetY * distancePerItem.x) + startPosition.x, (targetY * 1.3 * distancePerItem.y) + startPosition.y);
+			}
+			else
+			{
+				var lerpVal:Float = CoolUtil.boundTo(elapsed * 9.6, 0, 1);
+				if (changeX)
+					x = FlxMath.lerp(x, (targetY * distancePerItem.x) + startPosition.x, lerpVal);
+				if (changeY)
+					y = FlxMath.lerp(y, (targetY * 1.3 * distancePerItem.y) + startPosition.y, lerpVal);
+			}
 		}
 		super.update(elapsed);
 	}
