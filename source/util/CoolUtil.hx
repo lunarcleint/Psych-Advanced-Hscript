@@ -1,8 +1,10 @@
 package util;
 
 import data.Paths;
+import discord_rpc.DiscordRpc.ErrorCallback;
 import flixel.FlxG;
 import flixel.system.FlxSound;
+import haxe.display.Display.Package;
 import lime.utils.AssetLibrary;
 import lime.utils.AssetManifest;
 import lime.utils.Assets as LimeAssets;
@@ -163,5 +165,34 @@ class CoolUtil
 		}
 
 		return finalStr.toLowerCase();
+	}
+
+	public static function findFilesInPath(path:String, extns:Array<String>):Array<String>
+	{
+		var files:Array<String> = [];
+
+		if (FileSystem.exists(path))
+		{
+			for (file in FileSystem.readDirectory(path))
+			{
+				var path = haxe.io.Path.join([path, file]);
+				if (!FileSystem.isDirectory(path))
+				{
+					for (extn in extns)
+					{
+						if (file.endsWith(extn))
+							files.push(file);
+					}
+				}
+				else // ! YAY !!!! -lunar
+				{
+					var pathsFiles:Array<String> = findFilesInPath(path, extns);
+
+					for (_ in pathsFiles)
+						files.push(_);
+				}
+			}
+		}
+		return files;
 	}
 }

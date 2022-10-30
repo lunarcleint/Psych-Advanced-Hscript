@@ -1,5 +1,12 @@
+/*
+	!
+	! MODIFIED VERSION OF SCRIPTSTATE.HX FROM HSCRIPTPLUS - lunar
+	!
+ */
+
 package script;
 
+import flixel.FlxBasic;
 import haxe.CallStack;
 import hscript.Expr;
 import hscript.plus.InterpPlus;
@@ -7,10 +14,13 @@ import hscript.plus.ParserPlus;
 
 using StringTools;
 
-/*
-	! MODIFIED VERSION OF SCRIPTSTATE.HX FOR DESTROYING - lunar
- */
-class Script
+enum ScriptReturn
+{
+	PUASE;
+	CONTINUE;
+}
+
+class Script extends FlxBasic
 {
 	public var variables(get, null):Map<String, Dynamic>;
 
@@ -54,6 +64,8 @@ class Script
 
 	public function new()
 	{
+		super();
+
 		_parser = new ParserPlus();
 		_parser.allowTypes = true;
 
@@ -62,6 +74,9 @@ class Script
 
 		set("new", function() {});
 		set("destroy", function() {});
+
+		set("ScriptReturn", ScriptReturn);
+		set("_object", this);
 	}
 
 	function resolveImport(packageName:String):Dynamic
@@ -80,6 +95,36 @@ class Script
 	public inline function set(name:String, val:Dynamic)
 	{
 		_interp.variables.set(name, val);
+	}
+
+	public function executeFunc(name:String, ?args:Array<Any>):Dynamic<ScriptReturn>
+	{
+		try
+		{
+			var func = get(name);
+
+			var currentReturn:Dynamic = ScriptReturn.CONTINUE;
+
+			if (func != null && Reflect.isFunction(func))
+			{
+				if (args != null && args != [])
+				{
+					currentReturn = Reflect.callMethod(null, func, args);
+				}
+				else
+				{
+					currentReturn = func();
+				}
+			}
+
+			return currentReturn;
+		}
+		catch (e)
+		{
+			trace('ERROR CALLING FUNCTION $name', 'ARGS: $args');
+
+			return null;
+		}
 	}
 
 	public function executeFile(path:String)
@@ -187,8 +232,10 @@ class Script
 		return path.replace("/", ".");
 	}
 
-	public function destroy()
+	public override function destroy()
 	{
+		super.destroy();
+
 		var destroy = get("destroy");
 
 		if (destroy != null && Reflect.isFunction(destroy))

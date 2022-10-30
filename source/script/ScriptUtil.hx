@@ -23,6 +23,7 @@ import song.Conductor;
 import song.Section;
 import song.Song;
 import states.game.PlayState;
+import util.CoolUtil;
 import util.TimedEventHandler;
 
 using StringTools;
@@ -148,5 +149,10 @@ class ScriptUtil
 		script.set("TimedEventHandler", TimedEventHandler);
 
 		return script;
+	}
+
+	function findScriptsInDir(path:String):Array<String>
+	{
+		return CoolUtil.findFilesInPath(path, ["hx", "hscript", "hsc", "hxs"]);
 	}
 }
