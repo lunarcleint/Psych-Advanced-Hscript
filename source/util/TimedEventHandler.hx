@@ -1,5 +1,6 @@
 package util;
 
+import data.Paths;
 import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -14,8 +15,9 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxSort;
 import flixel.util.FlxTimer;
+import states.game.PlayState;
 
-class CutsceneHandler extends FlxBasic
+class TimedEventHandler extends FlxBasic
 {
 	public var timedEvents:Array<Dynamic> = [];
 	public var finishCallback:Void->Void = null;
