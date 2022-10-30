@@ -375,6 +375,7 @@ class PauseSubState extends MusicBeatSubstate
 			var item = new Alphabet(90, 320, menuItems[i], true);
 			item.isMenuItem = true;
 			item.targetY = i;
+			item.snapToPosition();
 			grpMenuShit.add(item);
 
 			if (menuItems[i] == 'Skip Time')

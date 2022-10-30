@@ -24,7 +24,7 @@ using StringTools;
 
 class MasterEditorMenu extends MusicBeatState
 {
-	var options:Array<String> = ['Week Editor', 'Character Editor', 'Chart Editor'];
+	var options:Array<String> = ['Week Editor', 'Character Editor', 'Menu Character Editor', 'Chart Editor'];
 	private var grpTexts:FlxTypedGroup<Alphabet>;
 	private var directories:Array<String> = [null];
 
@@ -89,6 +89,8 @@ class MasterEditorMenu extends MusicBeatState
 					MusicBeatState.switchState(new WeekEditorState());
 				case 'Chart Editor': // felt it would be cool maybe
 					LoadingState.loadAndSwitchState(new ChartingState(), false);
+				case 'Menu Character Editor':
+					MusicBeatState.switchState(new MenuCharacterEditorState());
 			}
 			FlxG.sound.music.volume = 0;
 			#if PRELOAD_ALL
