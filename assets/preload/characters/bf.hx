@@ -1,4 +1,0 @@
-function new()
-{
-	trace("d");
-}
