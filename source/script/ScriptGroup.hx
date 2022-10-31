@@ -6,13 +6,20 @@ class ScriptGroup extends FlxBasic
 {
 	public var scripts:Array<Script> = [];
 
+	public var onAddScript:Script->Void;
+
 	public function addScript(tag:String):Script
 	{
 		var script:Script = ScriptUtil.getBasicScript();
-		script = ScriptUtil.setUpFlixelScript(script);
-		script = ScriptUtil.setUpFNFScript(script);
+		ScriptUtil.setUpFlixelScript(script);
+		ScriptUtil.setUpFNFScript(script);
 
-		script.set("__name", tag);
+		script.set("name", tag);
+		script.name = tag;
+
+		if (onAddScript != null)
+			onAddScript(script);
+
 		scripts.push(script);
 
 		return script;
@@ -73,14 +80,14 @@ class ScriptGroup extends FlxBasic
 		return returns;
 	}
 
-	public function getScriptByTag(tag:Script):Null<Script>
+	public function getScriptByTag(tag:String):Null<Script>
 	{
 		for (_ in scripts)
 		{
 			if (_ == null)
 				continue;
 
-			if (_.get("__name") != null && _.get("__name") == tag)
+			if (_.name != null && _.name == tag)
 				return _;
 		}
 

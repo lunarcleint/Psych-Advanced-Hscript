@@ -9,6 +9,8 @@ import flixel.FlxState;
 import input.PlayerSettings;
 import lime.app.Application;
 import openfl.Lib;
+import script.RandomTestClass;
+import script.RandomTestClass;
 import states.menus.StoryMenuState;
 import states.menus.TitleState;
 import util.CoolUtil;
@@ -80,5 +82,6 @@ class Init extends FlxState
 		#end
 
 		FlxG.switchState(Type.createInstance(Main.initialState, []));
+		RandomTestClass.deez();
 	}
 }

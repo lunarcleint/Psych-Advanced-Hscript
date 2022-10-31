@@ -1,16 +1,12 @@
-/*
-	!
-	! MODIFIED VERSION OF SCRIPTSTATE.HX FROM HSCRIPTPLUS - lunar
-	!
- */
-
 package script;
 
+import Type;
 import flixel.FlxBasic;
 import haxe.CallStack;
 import hscript.Expr;
-import hscript.plus.InterpPlus;
-import hscript.plus.ParserPlus;
+import hscript.Interp;
+import hscript.Parser;
+import util.CoolUtil;
 
 using StringTools;
 
@@ -26,15 +22,6 @@ class Script extends FlxBasic
 
 	function get_variables()
 		return _interp.variables;
-
-	public var getFileContent:String->String
-
-	#if sys = sys.io.File.getContent #elseif openfl = openfl.Assets.getText #end;
-	public var getScriptPaths:Void->Array<String> #if openfl = () -> openfl.Assets.list() #end;
-
-	public var getScriptPathsFromDirectory:String->Array<String> #if sys = sys.FileSystem.readDirectory #end;
-
-	public var scriptDirectory(default, set):String;
 
 	/**
 	 *  If set to `true`, rethrow errors
@@ -59,32 +46,47 @@ class Script extends FlxBasic
 	 */
 	var _scriptPathMap = new Map<String, String>();
 
-	var _parser:ParserPlus;
-	var _interp:InterpPlus;
+	var _parser:Parser;
+	var _interp:Interp;
+
+	public var name:Null<String>;
 
 	public function new()
 	{
 		super();
 
-		_parser = new ParserPlus();
+		_parser = new Parser();
 		_parser.allowTypes = true;
+		_parser.allowMetadata = false;
+		_parser.allowJSON = false;
 
-		_interp = new InterpPlus();
-		_interp.setResolveImportFunction(resolveImport);
+		_interp = new Interp();
 
 		set("new", function() {});
 		set("destroy", function() {});
+		set("import", function(path:String, ?as:Null<String>)
+		{
+			var clas = Type.resolveClass(path); // ! class but without a s LMAO -lunar
+
+			var stringName:String = "";
+
+			if (as != null)
+				stringName = as;
+			else
+			{
+				var arr = Std.string(clas).split(".");
+				stringName = arr[arr.length - 1];
+			}
+
+			if (clas != null)
+				set(stringName, clas);
+		});
 
 		set("ScriptReturn", ScriptReturn);
-		set("_object", this);
-	}
+		set("PAUSE", ScriptReturn.PUASE);
+		set("CONTINUE", ScriptReturn.CONTINUE);
 
-	function resolveImport(packageName:String):Dynamic
-	{
-		var scriptPath = _scriptPathMap.get(packageName);
-		executeFile(scriptPath);
-		var className = packageName.split(".").pop();
-		return get(className);
+		set("__object__", this);
 	}
 
 	public inline function get(name:String):Dynamic
@@ -125,19 +127,6 @@ class Script extends FlxBasic
 
 			return null;
 		}
-	}
-
-	public function executeFile(path:String)
-	{
-		if (getFileContent == null)
-		{
-			error("Provide a getFileContent function first!");
-			if (!rethrowError)
-				return null;
-		}
-		this.path = path;
-		var script = getFileContent(path);
-		return executeString(script);
 	}
 
 	public function executeString(script:String):Dynamic
@@ -189,47 +178,6 @@ class Script extends FlxBasic
 			throw e;
 		else
 			trace(e);
-	}
-
-	function set_scriptDirectory(newDirectory:String)
-	{
-		if (!newDirectory.endsWith("/"))
-			newDirectory += "/";
-		loadScriptFromDirectory(scriptDirectory = newDirectory);
-		return newDirectory;
-	}
-
-	/**
-	 *  Create a map of package name as keys to paths
-	 *  @param directory The directory containing the script files
-	 */
-	function loadScriptFromDirectory(directory:String)
-	{
-		var paths:Array<String> = null;
-
-		if (getScriptPaths != null)
-			paths = getScriptPaths();
-		else if (getScriptPathsFromDirectory != null)
-			paths = getScriptPathsFromDirectory(directory);
-		else
-			error('Provide a function for getScriptPaths or getScriptPathsFromDirectory');
-
-		// filter out paths not ending with ".hx"
-		paths = paths.filter(path -> path.endsWith(".hx"));
-		// prepend the directory to the path if it doesn't start with the directory
-		paths = paths.map(path ->
-		{
-			return if (path.startsWith(directory)) path else directory + path;
-		});
-
-		_scriptPathMap = [for (path in paths) getPackageName(path) => path];
-	}
-
-	function getPackageName(path:String)
-	{
-		path = path.replace(scriptDirectory, "");
-		path = path.replace(".hx", "");
-		return path.replace("/", ".");
 	}
 
 	public override function destroy()

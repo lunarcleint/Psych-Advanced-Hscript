@@ -41,6 +41,7 @@ import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;
 import flixel.util.FlxTimer;
 import haxe.Json;
+import haxe.io.Path;
 import input.*;
 import lime.utils.Assets;
 import objects.*;
@@ -51,6 +52,9 @@ import openfl.display.StageQuality;
 import openfl.events.KeyboardEvent;
 import openfl.filters.BitmapFilter;
 import openfl.utils.Assets as OpenFlAssets;
+import script.Script;
+import script.ScriptGroup;
+import script.ScriptUtil;
 import song.*;
 import song.Conductor.Rating;
 import song.Section.SwagSection;
@@ -267,12 +271,17 @@ class PlayState extends MusicBeatState
 
 	public var introSoundsSuffix:String = '';
 
+	public var scripts:ScriptGroup;
+
 	override public function create()
 	{
 		Paths.clearStoredMemory();
 
-		// for lua
 		instance = this;
+
+		scripts = new ScriptGroup();
+		scripts.onAddScript = onAddScript;
+		initScripts();
 
 		debugKeysChart = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_1'));
 		debugKeysCharacter = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_2'));
@@ -459,6 +468,8 @@ class PlayState extends MusicBeatState
 		add(gfGroup);
 		add(dadGroup);
 		add(boyfriendGroup);
+
+		scripts.executeAllFunc("onCreateStage");
 
 		var gfVersion:String = SONG.gfVersion;
 		if (gfVersion == null || gfVersion.length < 1)
@@ -705,6 +716,8 @@ class PlayState extends MusicBeatState
 
 		super.create();
 
+		scripts.executeAllFunc("onCreatePost");
+
 		cacheCountdown();
 		cachePopUpScore();
 		for (key => type in precacheList)
@@ -881,7 +894,17 @@ class PlayState extends MusicBeatState
 
 	public function startCountdown():Void
 	{
+		if (startedCountdown)
+		{
+			scripts.executeAllFunc("onStartCountdown");
+			return;
+		}
+
 		inCutscene = false;
+
+		if (ScriptUtil.hasPause(scripts.executeAllFunc("onStartCountdown")))
+			return;
+
 		if (skipCountdown || startOnTime > 0)
 			skipArrowStartTween = true;
 
@@ -890,6 +913,8 @@ class PlayState extends MusicBeatState
 
 		startedCountdown = true;
 		Conductor.songPosition = -Conductor.crochet * 5;
+
+		scripts.executeAllFunc("onCountdownStarted");
 
 		var swagCounter:Int = 0;
 
@@ -1027,6 +1052,7 @@ class PlayState extends MusicBeatState
 					}
 				}
 			});
+			scripts.executeAllFunc("onCountdownTick", [swagCounter]);
 
 			swagCounter += 1;
 		}, 5);
@@ -1109,6 +1135,7 @@ class PlayState extends MusicBeatState
 				}
 			});
 		}
+		scripts.executeAllFunc("onUpdateScore", [miss]);
 	}
 
 	public function setSongTime(time:Float)
@@ -1171,6 +1198,8 @@ class PlayState extends MusicBeatState
 		// Updating Discord Rich Presence (with Time Left)
 		DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter(), true, songLength);
 		#end
+
+		scripts.executeAllFunc("onSongStart");
 	}
 
 	var debugNum:Int = 0;
@@ -1370,11 +1399,15 @@ class PlayState extends MusicBeatState
 
 	function eventNoteEarlyTrigger(event:EventNote):Float
 	{
-		switch (event.event)
+		var val:Array<Dynamic> = scripts.executeAllFunc("eventEarlyTrigger", [event.event]);
+
+		for (_ in val)
 		{
-			case 'Kill Henchmen': // Better timing so that the kill sound matches the beat intended
-				return 280; // Plays 280ms before the actual position
+			if (_ != null && Std.isOfType(_, Float) && !Math.isNaN(_))
+				return _;
 		}
+
+		switch (event.event) {}
 		return 0;
 	}
 
@@ -1496,6 +1529,8 @@ class PlayState extends MusicBeatState
 
 			paused = false;
 
+			scripts.executeAllFunc("onResume");
+
 			#if desktop
 			if (startTimer != null && startTimer.finished)
 			{
@@ -1581,6 +1616,9 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		if (scripts != null)
+			scripts.executeAllFunc("onUpdate", [elapsed]);
+
 		if (!inCutscene)
 		{
 			var lerpVal:Float = CoolUtil.boundTo(elapsed * 2.4 * cameraSpeed * playbackRate, 0, 1);
@@ -1612,7 +1650,8 @@ class PlayState extends MusicBeatState
 
 		if (controls.PAUSE && startedCountdown && canPause)
 		{
-			openPauseMenu();
+			if (!ScriptUtil.hasPause(scripts.executeAllFunc("onPause")))
+				openPauseMenu();
 		}
 
 		if (FlxG.keys.anyJustPressed(debugKeysChart) && !endingSong && !inCutscene)
@@ -1740,6 +1779,8 @@ class PlayState extends MusicBeatState
 				var dunceNote:Note = unspawnNotes[0];
 				notes.insert(0, dunceNote);
 				dunceNote.spawned = true;
+
+				scripts.executeAllFunc("onSpawnNote", [dunceNote]);
 
 				var index:Int = unspawnNotes.indexOf(dunceNote);
 				unspawnNotes.splice(index, 1);
@@ -1921,6 +1962,9 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#end
+
+		if (scripts != null)
+			scripts.executeAllFunc("onUpdatePost", [elapsed]);
 	}
 
 	function openPauseMenu()
@@ -1961,6 +2005,9 @@ class PlayState extends MusicBeatState
 	{
 		if (((skipHealthCheck && false) || health <= 0) && !practiceMode && !isDead)
 		{
+			if (ScriptUtil.hasPause(scripts.executeAllFunc("onGameOver")))
+				return true;
+
 			boyfriend.stunned = true;
 			deathCounter++;
 
@@ -2237,6 +2284,8 @@ class PlayState extends MusicBeatState
 					});
 				}
 		}
+
+		scripts.executeAllFunc("onEvent", [eventName, value1, value2]);
 	}
 
 	function moveCameraSection():Void
@@ -2373,6 +2422,9 @@ class PlayState extends MusicBeatState
 
 		deathCounter = 0;
 		seenCutscene = false;
+
+		if (ScriptUtil.hasPause(scripts.executeAllFunc("onEndSong")))
+			return;
 
 		if (SONG.validScore)
 		{
@@ -2772,6 +2824,7 @@ class PlayState extends MusicBeatState
 				}
 				else
 				{
+					scripts.executeAllFunc("onGhostTap", [key]);
 					if (canMiss)
 					{
 						noteMissPress(key);
@@ -2949,6 +3002,8 @@ class PlayState extends MusicBeatState
 			var animToPlay:String = singAnimations[Std.int(Math.abs(daNote.noteData))] + 'miss' + daNote.animSuffix;
 			char.playAnim(animToPlay, true);
 		}
+
+		scripts.executeAllFunc("noteMiss", [daNote]);
 	}
 
 	function noteMissPress(direction:Int = 1):Void // You pressed a key when there was no notes to press for this key
@@ -2993,6 +3048,8 @@ class PlayState extends MusicBeatState
 			}
 			vocals.volume = 0;
 		}
+
+		scripts.executeAllFunc("noteMissPress", [direction]);
 	}
 
 	function opponentNoteHit(note:Note):Void
@@ -3042,6 +3099,8 @@ class PlayState extends MusicBeatState
 		}
 		StrumPlayAnim(true, Std.int(Math.abs(note.noteData)), time);
 		note.hitByOpponent = true;
+
+		scripts.executeAllFunc("opponentNoteHit", [note]);
 
 		if (!note.isSustainNote)
 		{
@@ -3142,6 +3201,8 @@ class PlayState extends MusicBeatState
 			note.wasGoodHit = true;
 			vocals.volume = 1;
 
+			scripts.executeAllFunc("goodNoteHit", [note]);
+
 			if (!note.isSustainNote)
 			{
 				note.kill();
@@ -3200,6 +3261,9 @@ class PlayState extends MusicBeatState
 		}
 		FlxAnimationController.globalSpeed = 1;
 		FlxG.sound.music.pitch = 1;
+
+		scripts.destroy();
+
 		super.destroy();
 	}
 
@@ -3229,6 +3293,10 @@ class PlayState extends MusicBeatState
 		}
 
 		// ! CODE AFTER HERE STUPID LUNAR
+
+		// THANKS :)) - LUNAR
+
+		scripts.executeAllFunc("onStepHit");
 
 		lastStepHit = curStep;
 	}
@@ -3277,6 +3345,8 @@ class PlayState extends MusicBeatState
 		{
 			dad.dance();
 		}
+
+		scripts.executeAllFunc("onBeatHit");
 
 		lastBeatHit = curBeat;
 	}
@@ -3330,45 +3400,196 @@ class PlayState extends MusicBeatState
 
 	public function RecalculateRating(badHit:Bool = false)
 	{
-		if (totalPlayed < 1) // Prevent divide by 0
-			ratingName = '?';
-		else
+		if (ScriptUtil.hasPause(scripts.executeAllFunc("onRecalculateRating")))
 		{
-			// Rating Percent
-			ratingPercent = Math.min(1, Math.max(0, totalNotesHit / totalPlayed));
-			// trace((totalNotesHit / totalPlayed) + ', Total: ' + totalPlayed + ', notes hit: ' + totalNotesHit);
-
-			// Rating Name
-			if (ratingPercent >= 1)
-			{
-				ratingName = ratingStuff[ratingStuff.length - 1][0]; // Uses last string
-			}
+			if (totalPlayed < 1) // Prevent divide by 0
+				ratingName = '?';
 			else
 			{
-				for (i in 0...ratingStuff.length - 1)
+				// Rating Percent
+				ratingPercent = Math.min(1, Math.max(0, totalNotesHit / totalPlayed));
+				// trace((totalNotesHit / totalPlayed) + ', Total: ' + totalPlayed + ', notes hit: ' + totalNotesHit);
+
+				// Rating Name
+				if (ratingPercent >= 1)
 				{
-					if (ratingPercent < ratingStuff[i][1])
+					ratingName = ratingStuff[ratingStuff.length - 1][0]; // Uses last string
+				}
+				else
+				{
+					for (i in 0...ratingStuff.length - 1)
 					{
-						ratingName = ratingStuff[i][0];
-						break;
+						if (ratingPercent < ratingStuff[i][1])
+						{
+							ratingName = ratingStuff[i][0];
+							break;
+						}
 					}
+				}
+			}
+
+			// Rating FC
+			ratingFC = "";
+			if (sicks > 0)
+				ratingFC = "SFC";
+			if (goods > 0)
+				ratingFC = "GFC";
+			if (bads > 0 || shits > 0)
+				ratingFC = "FC";
+			if (songMisses > 0 && songMisses < 10)
+				ratingFC = "SDCB";
+			else if (songMisses >= 10)
+				ratingFC = "Clear";
+		}
+		updateScore(badHit); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce -Ghost
+	}
+
+	function initScripts()
+	{
+		var scriptData:Map<String, String> = [];
+
+		// SONG && GLOBAL SCRIPTS
+		var files:Array<String> = SONG.song == null ? [] : ScriptUtil.findScriptsInDir(Paths.getPreloadPath("data/" + Paths.formatToSongPath(SONG.song)));
+
+		for (_ in ScriptUtil.findScriptsInDir("assets/scripts/global"))
+			files.push(_);
+
+		for (file in files)
+		{
+			var hx:Null<String> = null;
+
+			if (FileSystem.exists(file))
+				hx = File.getContent(file);
+
+			if (hx != null)
+			{
+				var scriptName:String = CoolUtil.getFileStringFromPath(file);
+
+				trace(scriptName);
+
+				if (!scriptData.exists(scriptName))
+				{
+					scriptData.set(scriptName, hx);
 				}
 			}
 		}
 
-		// Rating FC
-		ratingFC = "";
-		if (sicks > 0)
-			ratingFC = "SFC";
-		if (goods > 0)
-			ratingFC = "GFC";
-		if (bads > 0 || shits > 0)
-			ratingFC = "FC";
-		if (songMisses > 0 && songMisses < 10)
-			ratingFC = "SDCB";
-		else if (songMisses >= 10)
-			ratingFC = "Clear";
+		// STAGE SCRIPTS
+		if (SONG.stage != null)
+		{
+			var hx:Null<String> = null;
 
-		updateScore(badHit); // score will only update after rating is calculated, if it's a badHit, it shouldn't bounce -Ghost
+			for (extn in ScriptUtil.extns)
+			{
+				var path:String = Paths.getPreloadPath('stages/' + SONG.stage + '.$extn');
+
+				if (FileSystem.exists(path))
+				{
+					hx = File.getContent(path);
+					break;
+				}
+			}
+
+			if (hx != null)
+			{
+				if (!scriptData.exists("stage"))
+					scriptData.set("stage", hx);
+			}
+		}
+
+		for (scriptName => hx in scriptData)
+		{
+			if (scripts.getScriptByTag(scriptName) == null)
+				scripts.addScript(scriptName).executeString(hx);
+		}
+	}
+
+	function onAddScript(script:Script)
+	{
+		// FUNCTIONS
+		script.set("onStartCountdown", () -> {});
+		script.set("onCreatePost", () -> {});
+		script.set("onCountdownTick", (tick:Int) -> {});
+		script.set("onUpdateScore", (miss:Bool) -> {});
+		script.set("onSongStart", () -> {});
+		script.set("eventEarlyTrigger", (event:String) -> {});
+		script.set("onResume", () -> {});
+		script.set("onUupdate", (elapsed:Float) -> {});
+		script.set("onPause", () -> {});
+		script.set("onSpawnNote", (note:Note) -> {});
+		script.set("onUpdatePost", (elapsed:Float) -> {});
+		script.set("onGameOver", () -> {});
+		script.set("onEvent", (name:String, val1:Dynamic, val2:Dynamic) -> {});
+		script.set("onEndSong", () -> {});
+		script.set("onGhostTap", (key:Int) -> {});
+		script.set("noteMiss", (note:Note) -> {});
+		script.set("noteMissPress", (dir:Int) -> {});
+		script.set("opponentNoteHit", (note:Note) -> {});
+		script.set("goodNoteHit", (note:Note) -> {});
+		script.set("onStepHit", () -> {});
+		script.set("onBeatHit", () -> {});
+		script.set("onRecalculateRating", () -> {});
+		script.set("onCreateStage", () -> {});
+
+		// VARIABLES
+		script.set("curStep", -1);
+		script.set("curBeat", -1);
+		script.set("bpm", -1);
+
+		// MISC
+		script.set("add", function(obj:FlxBasic, ?front:Bool = false)
+		{
+			if (front)
+			{
+				getInstance().add(obj);
+			}
+			else
+			{
+				if (PlayState.instance.isDead)
+				{
+					GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), obj);
+				}
+				else
+				{
+					var position:Int = PlayState.instance.members.indexOf(PlayState.instance.gfGroup);
+					if (PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup) < position)
+					{
+						position = PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup);
+					}
+					else if (PlayState.instance.members.indexOf(PlayState.instance.dadGroup) < position)
+					{
+						position = PlayState.instance.members.indexOf(PlayState.instance.dadGroup);
+					}
+					PlayState.instance.insert(position, obj);
+				}
+			}
+		});
+
+		script.set("addScript", function(scriptName:String)
+		{
+			var hx:Null<String> = null;
+
+			for (extn in ScriptUtil.extns)
+			{
+				var path:String = 'assets/scripts/$scriptName.$extn';
+
+				if (FileSystem.exists(path))
+				{
+					hx = File.getContent(path);
+					break;
+				}
+			}
+
+			if (hx != null)
+			{
+				if (scripts.getScriptByTag(scriptName) == null)
+					scripts.addScript(scriptName).executeString(hx);
+			}
+		});
+	}
+
+	public static inline function getInstance()
+	{
+		return PlayState.instance.isDead ? GameOverSubstate.instance : PlayState.instance;
 	}
 }

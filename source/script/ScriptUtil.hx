@@ -17,8 +17,14 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import objects.Boyfriend;
+import objects.Character;
+import objects.Note;
+import objects.NoteSplash;
+import objects.StrumNote;
 import openfl.Lib;
 import openfl.system.Capabilities;
+import script.Script.ScriptReturn;
 import song.Conductor;
 import song.Section;
 import song.Song;
@@ -35,6 +41,8 @@ import sys.io.File;
 
 class ScriptUtil
 {
+	public static final extns:Array<String> = ["hx", "hscript", "hsc", "hxs"];
+
 	public static function getBasicScript():Script
 	{
 		var script = new Script();
@@ -58,10 +66,10 @@ class ScriptUtil
 		return script;
 	}
 
-	public static function setUpFlixelScript(script:Script):Null<Script>
+	public static function setUpFlixelScript(script:Script)
 	{
 		if (script == null)
-			return null;
+			return;
 
 		// OpenFL
 		script.set("Lib", Lib);
@@ -76,6 +84,11 @@ class ScriptUtil
 		script.set("add", function(obj:FlxBasic)
 		{
 			FlxG.state.add(obj);
+		});
+
+		script.set("insert", function(postion:Int, obj:FlxBasic)
+		{
+			FlxG.state.insert(postion, obj);
 		});
 
 		script.set("remove", function(obj:FlxBasic)
@@ -114,19 +127,14 @@ class ScriptUtil
 			return FlxColor.fromString(str);
 		});
 
-		// Key Board
-		script.set("FlxKey", FlxKey);
-
 		// Sounds
 		script.set("FlxSound", FlxSound);
-
-		return script;
 	}
 
-	public static function setUpFNFScript(script:Script):Null<Script>
+	public static function setUpFNFScript(script:Script)
 	{
 		if (script == null)
-			return null;
+			return;
 
 		// States
 		script.set("PlayState", PlayState);
@@ -145,14 +153,24 @@ class ScriptUtil
 		script.set("Section", Section);
 		script.set("Conductor", Conductor);
 
+		// Objects
+		script.set("Note", Note);
+		script.set("StrumNote", StrumNote);
+		script.set("NoteSplash", NoteSplash);
+		script.set("Character", Character);
+		script.set("Boyfriend", Boyfriend);
+
 		// Misc
 		script.set("TimedEventHandler", TimedEventHandler);
-
-		return script;
 	}
 
-	function findScriptsInDir(path:String):Array<String>
+	public static inline function findScriptsInDir(path:String):Array<String>
 	{
-		return CoolUtil.findFilesInPath(path, ["hx", "hscript", "hsc", "hxs"]);
+		return CoolUtil.findFilesInPath(path, ["hx", "hscript", "hsc", "hxs"], true);
+	}
+
+	public static inline function hasPause(arr:Array<Dynamic>):Bool
+	{
+		return arr.contains(ScriptReturn.PUASE);
 	}
 }

@@ -1,0 +1,4 @@
+function new()
+{
+	trace("test");
+}
