@@ -66,20 +66,32 @@ class Script extends FlxBasic
 		set("destroy", function() {});
 		set("import", function(path:String, ?as:Null<String>)
 		{
-			var clas = Type.resolveClass(path); // ! class but without a s LMAO -lunar
-
-			var stringName:String = "";
-
-			if (as != null)
-				stringName = as;
-			else
+			try
 			{
-				var arr = Std.string(clas).split(".");
-				stringName = arr[arr.length - 1];
-			}
+				if (path == null || path == "")
+					return;
 
-			if (clas != null)
+				var clas = Type.resolveClass(path); // ! class but without a s LMAO -lunar
+
+				if (clas == null)
+					return;
+
+				var stringName:String = "";
+
+				if (as != null)
+					stringName = as;
+				else
+				{
+					var arr = Std.string(clas).split(".");
+					stringName = arr[arr.length - 1];
+				}
+
 				set(stringName, clas);
+			}
+			catch (e)
+			{
+				trace("SCRIPT IMPORTING CLASS PROBLEM!");
+			}
 		});
 
 		set("ScriptReturn", ScriptReturn);

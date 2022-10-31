@@ -137,7 +137,7 @@ class ScriptUtil
 			return;
 
 		// States
-		script.set("PlayState", PlayState);
+		script.set("PlayState", PlayState.instance);
 
 		// Save Data
 		script.set("ClientPrefs", ClientPrefs);

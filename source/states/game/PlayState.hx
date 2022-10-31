@@ -281,7 +281,7 @@ class PlayState extends MusicBeatState
 
 		scripts = new ScriptGroup();
 		scripts.onAddScript = onAddScript;
-		initScripts();
+		Character.onCreate = initCharScript;
 
 		debugKeysChart = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_1'));
 		debugKeysCharacter = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_2'));
@@ -348,6 +348,8 @@ class PlayState extends MusicBeatState
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.changeBPM(SONG.bpm);
+
+		scripts.setAll("bpm", Conductor.bpm);
 
 		#if desktop
 		storyDifficultyText = CoolUtil.difficulties[storyDifficulty];
@@ -429,6 +431,36 @@ class PlayState extends MusicBeatState
 		dadGroup = new FlxSpriteGroup(DAD_X, DAD_Y);
 		gfGroup = new FlxSpriteGroup(GF_X, GF_Y);
 
+		var gfVersion:String = SONG.gfVersion;
+		if (gfVersion == null || gfVersion.length < 1)
+		{
+			switch (curStage)
+			{
+				default:
+					gfVersion = 'gf';
+			}
+
+			SONG.gfVersion = gfVersion; // Fix for the Chart Editor
+		}
+
+		if (!stageData.hide_girlfriend)
+		{
+			gf = new Character(0, 0, gfVersion);
+			startCharacterPos(gf);
+			gf.scrollFactor.set(0.95, 0.95);
+			gfGroup.add(gf);
+		}
+
+		dad = new Character(0, 0, SONG.player2);
+		startCharacterPos(dad, true);
+		dadGroup.add(dad);
+
+		boyfriend = new Boyfriend(0, 0, SONG.player1);
+		startCharacterPos(boyfriend);
+		boyfriendGroup.add(boyfriend);
+
+		initScripts();
+
 		switch (curStage)
 		{
 			case 'stage': // Week 1
@@ -470,34 +502,6 @@ class PlayState extends MusicBeatState
 		add(boyfriendGroup);
 
 		scripts.executeAllFunc("onCreateStage");
-
-		var gfVersion:String = SONG.gfVersion;
-		if (gfVersion == null || gfVersion.length < 1)
-		{
-			switch (curStage)
-			{
-				default:
-					gfVersion = 'gf';
-			}
-
-			SONG.gfVersion = gfVersion; // Fix for the Chart Editor
-		}
-
-		if (!stageData.hide_girlfriend)
-		{
-			gf = new Character(0, 0, gfVersion);
-			startCharacterPos(gf);
-			gf.scrollFactor.set(0.95, 0.95);
-			gfGroup.add(gf);
-		}
-
-		dad = new Character(0, 0, SONG.player2);
-		startCharacterPos(dad, true);
-		dadGroup.add(dad);
-
-		boyfriend = new Boyfriend(0, 0, SONG.player1);
-		startCharacterPos(boyfriend);
-		boyfriendGroup.add(boyfriend);
 
 		var camPos:FlxPoint = new FlxPoint(girlfriendCameraOffset[0], girlfriendCameraOffset[1]);
 		if (gf != null)
@@ -1212,6 +1216,7 @@ class PlayState extends MusicBeatState
 
 		var songData = SONG;
 		Conductor.changeBPM(songData.bpm);
+		scripts.setAll("bpm", Conductor.bpm);
 
 		curSong = songData.song;
 
@@ -3262,6 +3267,7 @@ class PlayState extends MusicBeatState
 		FlxAnimationController.globalSpeed = 1;
 		FlxG.sound.music.pitch = 1;
 
+		Character.onCreate = null;
 		scripts.destroy();
 
 		super.destroy();
@@ -3296,6 +3302,7 @@ class PlayState extends MusicBeatState
 
 		// THANKS :)) - LUNAR
 
+		scripts.setAll("curStep", curStep);
 		scripts.executeAllFunc("onStepHit");
 
 		lastStepHit = curStep;
@@ -3346,6 +3353,7 @@ class PlayState extends MusicBeatState
 			dad.dance();
 		}
 
+		scripts.setAll("curBeat", curBeat);
 		scripts.executeAllFunc("onBeatHit");
 
 		lastBeatHit = curBeat;
@@ -3371,6 +3379,7 @@ class PlayState extends MusicBeatState
 			if (SONG.notes[curSection].changeBPM)
 			{
 				Conductor.changeBPM(SONG.notes[curSection].bpm);
+				scripts.setAll("bpm", Conductor.bpm);
 			}
 		}
 	}
@@ -3446,6 +3455,9 @@ class PlayState extends MusicBeatState
 
 	function initScripts()
 	{
+		if (scripts == null)
+			return;
+
 		var scriptData:Map<String, String> = [];
 
 		// SONG && GLOBAL SCRIPTS
@@ -3464,8 +3476,6 @@ class PlayState extends MusicBeatState
 			if (hx != null)
 			{
 				var scriptName:String = CoolUtil.getFileStringFromPath(file);
-
-				trace(scriptName);
 
 				if (!scriptData.exists(scriptName))
 				{
@@ -3504,6 +3514,28 @@ class PlayState extends MusicBeatState
 		}
 	}
 
+	function initCharScript(char:Character)
+	{
+		if (char == null || scripts == null)
+			return;
+
+		var name:String = char.curCharacter;
+		var hx:Null<String> = null;
+
+		for (extn in ScriptUtil.extns)
+		{
+			var path = Paths.getPreloadPath('characters/' + name + '.$extn');
+
+			if (FileSystem.exists(path))
+			{
+				hx = File.getContent(path);
+				break;
+			}
+		}
+
+		scripts.addScript(name).executeString(hx);
+	}
+
 	function onAddScript(script:Script)
 	{
 		// FUNCTIONS
@@ -3535,6 +3567,29 @@ class PlayState extends MusicBeatState
 		script.set("curStep", -1);
 		script.set("curBeat", -1);
 		script.set("bpm", -1);
+
+		// OBJECTS
+		script.set("camGame", camGame);
+		script.set("camHUD", camHUD);
+		script.set("camOther", camOther);
+
+		script.set("camFollow", camFollow);
+		script.set("camFollowPos", camFollowPos);
+
+		// CHARACTERS
+		script.set("boyfriend", boyfriend);
+		script.set("dad", dad);
+		script.set("gf", gf);
+
+		script.set("boyfriendGroup", boyfriendGroup);
+		script.set("dadGroup", dadGroup);
+		script.set("gfGroup", gfGroup);
+
+		// NOTES
+		script.set("notes", notes);
+		script.set("strumLineNotes", strumLineNotes);
+		script.set("playerStrums", playerStrums);
+		script.set("opponentStrums", opponentStrums);
 
 		// MISC
 		script.set("add", function(obj:FlxBasic, ?front:Bool = false)

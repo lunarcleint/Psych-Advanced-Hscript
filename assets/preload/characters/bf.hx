@@ -1,4 +1,4 @@
 function new()
 {
-	trace("test");
+	trace("d");
 }

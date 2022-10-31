@@ -84,6 +84,8 @@ class Character extends FlxSprite
 
 	public static var DEFAULT_CHARACTER:String = 'bf'; // In case a character is missing, it will use BF on its place
 
+	public static var onCreate:Character->Void;
+
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
 	{
 		super(x, y);
@@ -230,6 +232,9 @@ class Character extends FlxSprite
 					}
 			}*/
 		}
+
+		if (onCreate != null)
+			onCreate(this);
 	}
 
 	override function update(elapsed:Float)
