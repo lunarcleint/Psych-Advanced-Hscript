@@ -29,6 +29,7 @@ import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.system.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
@@ -55,6 +56,7 @@ import openfl.utils.Assets as OpenFlAssets;
 import script.Script;
 import script.ScriptGroup;
 import script.ScriptUtil;
+import shaders.ShaderUtil;
 import song.*;
 import song.Conductor.Rating;
 import song.Section.SwagSection;
@@ -736,6 +738,34 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		CustomFadeTransition.nextCamera = camOther;
+
+		var t = new FlxRuntimeShader("		
+		#pragma header
+		
+        uniform vec2 rOffset;
+        uniform vec2 gOffset;
+        uniform vec2 bOffset;
+
+		vec4 offsetColor(vec2 offset)
+        {
+            return texture2D(bitmap, openfl_TextureCoordv.st - offset);
+        }
+
+		void main()
+		{
+			vec4 base = texture2D(bitmap, openfl_TextureCoordv);
+            base.r = offsetColor(rOffset).r;
+            base.g = offsetColor(gOffset).g;
+            base.b = offsetColor(bOffset).b;
+
+			gl_FragColor = base;
+		}
+		");
+
+		t.setFloatArray("rOffset", [-0.005, 0]);
+		t.setFloatArray("bOffset", [0.005, 0]);
+
+		FlxG.camera.setFilters([new ShaderFilter(t)]);
 
 		scripts.executeAllFunc("onCreate");
 	}
@@ -3588,6 +3618,11 @@ class PlayState extends MusicBeatState
 		script.set("playerStrums", playerStrums);
 		script.set("opponentStrums", opponentStrums);
 
+		script.set("unspawnNotes", unspawnNotes);
+
+		// SHADERS
+		script.set("ShaderUtil", ShaderUtil);
+
 		// MISC
 		script.set("add", function(obj:FlxBasic, ?front:Bool = false)
 		{
@@ -3638,6 +3673,18 @@ class PlayState extends MusicBeatState
 					scripts.addScript(scriptName).executeString(hx);
 			}
 		});
+	}
+
+	public function addShaderToCamera(camera:FlxCamera, shader:FlxShader)
+	{
+		if (camera == null || shader == null)
+			return;
+
+		@:privateAccess
+		var camShaders:Array<BitmapFilter> = camera._filters;
+		camShaders.push(cast new ShaderFilter(shader));
+
+		camera.setFilters(camShaders);
 	}
 
 	public static inline function getInstance()

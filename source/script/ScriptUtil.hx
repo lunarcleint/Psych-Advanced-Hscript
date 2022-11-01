@@ -11,6 +11,7 @@ import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
+import flixel.system.FlxAssets.FlxShader;
 import flixel.system.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
@@ -23,8 +24,10 @@ import objects.Note;
 import objects.NoteSplash;
 import objects.StrumNote;
 import openfl.Lib;
+import openfl.filters.ShaderFilter;
 import openfl.system.Capabilities;
 import script.Script.ScriptReturn;
+import shaders.FlxRunTimeShader.FlxRuntimeShader;
 import song.Conductor;
 import song.Section;
 import song.Song;
@@ -74,6 +77,7 @@ class ScriptUtil
 		// OpenFL
 		script.set("Lib", Lib);
 		script.set("Capabilities", Capabilities);
+		script.set("ShaderFitler", ShaderFilter);
 
 		// Basic Stuff
 		script.set("state", FlxG.state);
@@ -115,6 +119,10 @@ class ScriptUtil
 		script.set("FlxTextFormat", FlxTextFormat);
 		script.set("FlxTextFormatMarkerPair", FlxTextFormatMarkerPair);
 		script.set("FlxTextBorderStyle", FlxTextBorderStyle);
+
+		// Shaders
+		script.set("FlxShader", FlxShader);
+		script.set("FlxRuntimeShader", FlxRuntimeShader);
 
 		// Color Functions
 		script.set("colorFromRGB", function(Red:Int, Green:Int, Blue:Int, Alpha:Int = 255)

@@ -61,6 +61,8 @@
 	</section>
 	
 	<assets path="assets/scripts"       library="scripts"/>
+	<assets path="assets/shaders"       library="shaders"/>
+
 	<assets path="assets/videos"        library="videos"        if="VIDEOS_ALLOWED"/>
 	<assets path="assets/songs"         library="songs"         exclude="*.ogg" if="web"/>
 	<assets path="assets/songs"         library="songs"         exclude="*.mp3" unless="web"/>
