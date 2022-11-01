@@ -501,8 +501,6 @@ class PlayState extends MusicBeatState
 		add(dadGroup);
 		add(boyfriendGroup);
 
-		scripts.executeAllFunc("onCreateStage");
-
 		var camPos:FlxPoint = new FlxPoint(girlfriendCameraOffset[0], girlfriendCameraOffset[1]);
 		if (gf != null)
 		{
@@ -720,8 +718,6 @@ class PlayState extends MusicBeatState
 
 		super.create();
 
-		scripts.executeAllFunc("onCreatePost");
-
 		cacheCountdown();
 		cachePopUpScore();
 		for (key => type in precacheList)
@@ -740,6 +736,8 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		CustomFadeTransition.nextCamera = camOther;
+
+		scripts.executeAllFunc("onCreate");
 	}
 
 	function set_songSpeed(value:Float):Float
@@ -3540,7 +3538,7 @@ class PlayState extends MusicBeatState
 	{
 		// FUNCTIONS
 		script.set("onStartCountdown", () -> {});
-		script.set("onCreatePost", () -> {});
+		script.set("onCreate", () -> {});
 		script.set("onCountdownTick", (tick:Int) -> {});
 		script.set("onUpdateScore", (miss:Bool) -> {});
 		script.set("onSongStart", () -> {});
@@ -3561,7 +3559,6 @@ class PlayState extends MusicBeatState
 		script.set("onStepHit", () -> {});
 		script.set("onBeatHit", () -> {});
 		script.set("onRecalculateRating", () -> {});
-		script.set("onCreateStage", () -> {});
 
 		// VARIABLES
 		script.set("curStep", -1);
