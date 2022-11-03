@@ -6,13 +6,13 @@ A bare-bones fork of psych engine designed to be soft coded in certian ways, but
 
 ![Minecraft Steve](https://i.imgur.com/fRACgfU.png)
 
-##Current Developement Status🟡
+## Current Developement Status🟡
 
 Current Version: **v0.0.1**
 
 The current build will be unfinished for awhile, please report any errors you get in the [Issues](https://github.com/lunarcleint/Psych-Advanced-Hscript/issues) tab!
 
-##Documenation
+## Documenation
 
 Coming Soon! (I can't work git for shit)
 
