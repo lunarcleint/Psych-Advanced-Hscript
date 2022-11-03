@@ -27,7 +27,7 @@ import openfl.Lib;
 import openfl.filters.ShaderFilter;
 import openfl.system.Capabilities;
 import script.Script.ScriptReturn;
-import shaders.FlxRunTimeShader.FlxRuntimeShader;
+import shaders.FlxRunTimeShader;
 import song.Conductor;
 import song.Section;
 import song.Song;
@@ -82,7 +82,6 @@ class ScriptUtil
 		// Basic Stuff
 		script.set("state", FlxG.state);
 		script.set("camera", FlxG.camera);
-		script.set("_game", FlxG.game);
 		script.set("FlxG", FlxG);
 
 		script.set("add", function(obj:FlxBasic)
@@ -143,9 +142,6 @@ class ScriptUtil
 	{
 		if (script == null)
 			return;
-
-		// States
-		script.set("PlayState", PlayState.instance);
 
 		// Save Data
 		script.set("ClientPrefs", ClientPrefs);

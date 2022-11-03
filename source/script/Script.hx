@@ -3,10 +3,11 @@ package script;
 import Type;
 import flixel.FlxBasic;
 import haxe.CallStack;
+import haxe.Log;
 import hscript.Expr;
 import hscript.Interp;
 import hscript.Parser;
-import util.CoolUtil;
+import openfl.Lib;
 
 using StringTools;
 
@@ -24,32 +25,15 @@ class Script extends FlxBasic
 		return _interp.variables;
 
 	/**
-	 *  If set to `true`, rethrow errors
-	 *  or just trace the errors when set to `false`
-	 */
-	public var rethrowError:Bool = #if debug true #else false #end;
-
-	/**
 	 *  The last Expr executed
 	 *  Used for debugging
 	 */
 	public var ast(default, null):Expr;
 
-	/**
-	 *  The last path whose text was executed
-	 *  Used for debugging
-	 */
-	public var path(default, null):String;
-
-	/**
-	 *  Map<PackageName, Path>
-	 */
-	var _scriptPathMap = new Map<String, String>();
-
 	var _parser:Parser;
 	var _interp:Interp;
 
-	public var name:Null<String>;
+	public var name:Null<String> = "_hscript";
 
 	public function new()
 	{
@@ -57,24 +41,40 @@ class Script extends FlxBasic
 
 		_parser = new Parser();
 		_parser.allowTypes = true;
-		_parser.allowMetadata = false;
-		_parser.allowJSON = false;
 
 		_interp = new Interp();
 
 		set("new", function() {});
 		set("destroy", function() {});
+
+		set("trace", Reflect.makeVarArgs(function(_)
+		{
+			Log.trace(Std.string(_.shift()), {
+				lineNumber: _interp.posInfos() != null ? _interp.posInfos().lineNumber : -1,
+				className: name,
+				fileName: name,
+				methodName: null,
+				customParams: _.length > 0 ? _ : null
+			});
+		}));
+
 		set("import", function(path:String, ?as:Null<String>)
 		{
 			try
 			{
 				if (path == null || path == "")
+				{
+					error("Path Not Specified!", '${name}: Import Error!');
 					return;
+				}
 
 				var clas = Type.resolveClass(path); // ! class but without a s LMAO -lunar
 
 				if (clas == null)
+				{
+					error('Class Not Found!\nPath: ${path}', '${name}: Import Error!');
 					return;
+				}
 
 				var stringName:String = "";
 
@@ -90,15 +90,11 @@ class Script extends FlxBasic
 			}
 			catch (e)
 			{
-				trace("SCRIPT IMPORTING CLASS PROBLEM!");
+				error('${e}', '${name}: Import Error!');
 			}
 		});
 
 		set("ScriptReturn", ScriptReturn);
-		set("PAUSE", ScriptReturn.PUASE);
-		set("CONTINUE", ScriptReturn.CONTINUE);
-
-		set("__object__", this);
 	}
 
 	public inline function get(name:String):Dynamic
@@ -111,32 +107,34 @@ class Script extends FlxBasic
 		_interp.variables.set(name, val);
 	}
 
-	public function executeFunc(name:String, ?args:Array<Any>):Dynamic<ScriptReturn>
+	public function executeFunc(name:String, ?args:Null<Array<Any>>):Null<Dynamic>
 	{
 		try
 		{
-			var func = get(name);
+			if (_interp == null)
+				return null;
 
-			var currentReturn:Dynamic = ScriptReturn.CONTINUE;
-
-			if (func != null && Reflect.isFunction(func))
+			if (_interp.variables.exists(name) && get(name) != null)
 			{
-				if (args != null && args != [])
+				var func = get(name);
+
+				if (func != null && Reflect.isFunction(func))
 				{
-					currentReturn = Reflect.callMethod(null, func, args);
-				}
-				else
-				{
-					currentReturn = func();
+					if (args != null && args != [])
+					{
+						return Reflect.callMethod(null, func, args);
+					}
+					else
+					{
+						return func();
+					}
 				}
 			}
-
-			return currentReturn;
+			return null;
 		}
 		catch (e)
 		{
-			trace('ERROR CALLING FUNCTION $name', 'ARGS: $args');
-
+			error('${e}', '${name}: Function Error');
 			return null;
 		}
 	}
@@ -144,22 +142,22 @@ class Script extends FlxBasic
 	public function executeString(script:String):Dynamic
 	{
 		ast = parseScript(script);
-		return execute(ast);
+		if (ast != null)
+			return execute(ast);
+
+		return null;
 	}
 
 	function parseScript(script:String):Null<Expr>
 	{
 		try
 		{
-			return _parser.parseString(script, path);
+			return _parser.parseString(script, name);
 		}
 		catch (e:Dynamic)
 		{
-			#if hscriptPos
-			error('$path:${e.line}: characters ${e.pmin} - ${e.pmax}: $e');
-			#else
-			error(e);
-			#end
+			error('${name}:${_parser.line}: characters ${e.pmin} - ${e.pmax}: ${StringTools.replace(e,'${name}:${_parser.line}:', '')}',
+				'${name}: Script Parser Error!');
 			return null;
 		}
 	}
@@ -169,27 +167,21 @@ class Script extends FlxBasic
 		try
 		{
 			var val = _interp.execute(ast);
-			var main = get("new");
+			executeFunc("new");
 
-			if (main != null && Reflect.isFunction(main))
-				return main();
-			else
-				return val;
+			return val;
 		}
 		catch (e:Dynamic)
 		{
-			error(e + CallStack.toString(CallStack.exceptionStack()));
-			trace('Debug AST: $ast');
+			error('$e \n${CallStack.toString(CallStack.exceptionStack())}');
 		}
 		return null;
 	}
 
-	function error(e:Dynamic)
+	public function error(errorMsg:String, ?winTitle:Null<String>)
 	{
-		if (rethrowError)
-			throw e;
-		else
-			trace(e);
+		Log.trace(errorMsg, null);
+		Lib.application.window.alert(errorMsg, winTitle != null ? winTitle : '${name}: Script Error!');
 	}
 
 	public override function destroy()

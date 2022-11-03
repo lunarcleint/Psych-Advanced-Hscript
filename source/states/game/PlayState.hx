@@ -75,8 +75,8 @@ using StringTools;
 import util.Discord.DiscordClient;
 #end
 #if !flash
-import flixel.addons.display.FlxRuntimeShader;
 import openfl.filters.ShaderFilter;
+import shaders.FlxRunTimeShader;
 #end
 #if sys
 import sys.FileSystem;
@@ -738,34 +738,6 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		CustomFadeTransition.nextCamera = camOther;
-
-		var t = new FlxRuntimeShader("		
-		#pragma header
-		
-        uniform vec2 rOffset;
-        uniform vec2 gOffset;
-        uniform vec2 bOffset;
-
-		vec4 offsetColor(vec2 offset)
-        {
-            return texture2D(bitmap, openfl_TextureCoordv.st - offset);
-        }
-
-		void main()
-		{
-			vec4 base = texture2D(bitmap, openfl_TextureCoordv);
-            base.r = offsetColor(rOffset).r;
-            base.g = offsetColor(gOffset).g;
-            base.b = offsetColor(bOffset).b;
-
-			gl_FragColor = base;
-		}
-		");
-
-		t.setFloatArray("rOffset", [-0.005, 0]);
-		t.setFloatArray("bOffset", [0.005, 0]);
-
-		FlxG.camera.setFilters([new ShaderFilter(t)]);
 
 		scripts.executeAllFunc("onCreate");
 	}
@@ -3566,6 +3538,8 @@ class PlayState extends MusicBeatState
 
 	function onAddScript(script:Script)
 	{
+		script.set("PlayState", instance);
+
 		// FUNCTIONS
 		script.set("onStartCountdown", () -> {});
 		script.set("onCreate", () -> {});
@@ -3621,6 +3595,7 @@ class PlayState extends MusicBeatState
 		script.set("unspawnNotes", unspawnNotes);
 
 		// SHADERS
+		script.set("FlxRuntimeShader", FlxRuntimeShader);
 		script.set("ShaderUtil", ShaderUtil);
 
 		// MISC
@@ -3675,7 +3650,7 @@ class PlayState extends MusicBeatState
 		});
 	}
 
-	public function addShaderToCamera(camera:FlxCamera, shader:FlxShader)
+	function addShaderToCamera(camera:FlxCamera, shader:FlxShader)
 	{
 		if (camera == null || shader == null)
 			return;
