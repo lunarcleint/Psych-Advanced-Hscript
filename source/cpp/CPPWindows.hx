@@ -86,6 +86,17 @@ class CPPWindows
 	{
 		return 0;
 	}
+
+	// ! https://github.com/brightfyregit/Indie-Cross-Public/blob/master/source/SpecsDetector.hx#L87-L102
+	public static function messageBox(msg:ConstCharStar = null, title:ConstCharStar = null, ?handler:Null<Int->Void>)
+	{
+		var msgID:Int = untyped MessageBox(null, msg, title, untyped __cpp__("MB_ICONERROR | MB_OK"));
+
+		if (handler != null)
+			handler(msgID);
+
+		return true;
+	}
 	#end
 	#end
 }

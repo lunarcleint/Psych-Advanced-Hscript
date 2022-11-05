@@ -1,5 +1,9 @@
 package cpp;
 
+import cpp.ConstCharStar;
+import cpp.Native;
+import cpp.UInt64;
+
 #if cpp
 #if linux
 @:headerCode("#include <stdio.h>")

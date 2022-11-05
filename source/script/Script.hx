@@ -1,6 +1,7 @@
 package script;
 
 import Type;
+import cpp.CPPInterface;
 import flixel.FlxBasic;
 import haxe.CallStack;
 import haxe.Log;
@@ -132,8 +133,16 @@ class Script extends FlxBasic
 			{
 				if (_group.getScriptByTag(scriptName) == null)
 					_group.addScript(scriptName).executeString(hx);
+				else
+				{
+					error('$scriptName is alreadly added as a Script!', '$name:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Adding Error!');
+				}
 
 				return _group.getScriptByTag(scriptName).interacter.interactObj;
+			}
+			else
+			{
+				error('Script "$scriptName" not Found!', '$name:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Adding Error!');
 			}
 			return null;
 		});
@@ -268,7 +277,11 @@ class Script extends FlxBasic
 	public function error(errorMsg:String, ?winTitle:Null<String>)
 	{
 		trace(errorMsg);
+		#if windows
+		CPPInterface.messageBox(errorMsg, winTitle);
+		#else
 		Lib.application.window.alert(errorMsg, winTitle != null ? winTitle : '${name}: Script Error!');
+		#end
 	}
 
 	public override function destroy()

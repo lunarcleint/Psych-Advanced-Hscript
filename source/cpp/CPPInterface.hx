@@ -26,6 +26,11 @@ class CPPInterface
 	{
 		CPPWindows._setWindowLayered();
 	}
+
+	public static function messageBox(msg:ConstCharStar = null, title:ConstCharStar = null, ?handler:Null<Int->Void> = null)
+	{
+		CPPWindows.messageBox(msg, title, handler);
+	}
 	#end
 
 	#if windows
