@@ -1623,14 +1623,8 @@ class PlayState extends MusicBeatState
 	{
 		if (scripts != null)
 		{
-			for (_ in scripts.scripts)
-			{
-				if (_ != null)
-					_.update(elapsed);
-			}
+			scripts.update(elapsed);
 		}
-		if (scripts != null)
-			scripts.executeAllFunc("update", [elapsed]);
 
 		if (!inCutscene)
 		{
@@ -3560,7 +3554,6 @@ class PlayState extends MusicBeatState
 		script.set("songStart", () -> {});
 		script.set("eventEarlyTrigger", (event:String) -> {});
 		script.set("resume", () -> {});
-		script.set("update", (elapsed:Float) -> {});
 		script.set("pause", () -> {});
 		script.set("spawnNote", (note:Note) -> {});
 		script.set("updatePost", (elapsed:Float) -> {});

@@ -47,6 +47,7 @@ class Script extends FlxBasic
 
 		_parser = new Parser();
 		_parser.allowTypes = true;
+		_parser.allowMetadata = false;
 
 		_interp = new Interp();
 
@@ -54,6 +55,7 @@ class Script extends FlxBasic
 
 		set("new", function() {});
 		set("destroy", function() {});
+		set("update", (elapsed:Float) -> {});
 
 		set("trace", Reflect.makeVarArgs(function(_)
 		{
@@ -251,6 +253,8 @@ class Script extends FlxBasic
 		{
 			interacter.upadteObj();
 		}
+		executeFunc("update", [elapsed]);
+
 		super.update(elapsed);
 	}
 

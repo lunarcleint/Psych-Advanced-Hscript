@@ -13,6 +13,17 @@ class ScriptGroup extends FlxBasic
 		super();
 	}
 
+	public override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+
+		for (_ in scripts)
+		{
+			if (_ != null)
+				_.update(elapsed);
+		}
+	}
+
 	public function addScript(tag:String):Script
 	{
 		var script:Script = ScriptUtil.getBasicScript();
