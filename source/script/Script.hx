@@ -133,11 +133,15 @@ class Script extends FlxBasic
 
 			if (hx != null)
 			{
-				if (_group.getScriptByTag(scriptName) == null)
+				if (_group != null && _group.getScriptByTag(scriptName) == null)
 					_group.addScript(scriptName).executeString(hx);
 				else
 				{
-					error('$scriptName is alreadly added as a Script!', '$name:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Adding Error!');
+					if (_group == null)
+						error('Script group not found!', '$name:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Adding Error!');
+					else
+						error('$scriptName is alreadly added as a Script!',
+							'$name:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Adding Error!');
 				}
 
 				return _group.getScriptByTag(scriptName).interacter.interactObj;
