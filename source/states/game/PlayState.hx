@@ -739,7 +739,7 @@ class PlayState extends MusicBeatState
 
 		CustomFadeTransition.nextCamera = camOther;
 
-		scripts.executeAllFunc("onCreate");
+		scripts.executeAllFunc("create");
 	}
 
 	function set_songSpeed(value:Float):Float
@@ -900,13 +900,13 @@ class PlayState extends MusicBeatState
 	{
 		if (startedCountdown)
 		{
-			scripts.executeAllFunc("onStartCountdown");
+			scripts.executeAllFunc("startCountdown");
 			return;
 		}
 
 		inCutscene = false;
 
-		if (ScriptUtil.hasPause(scripts.executeAllFunc("onStartCountdown")))
+		if (ScriptUtil.hasPause(scripts.executeAllFunc("startCountdown")))
 			return;
 
 		if (skipCountdown || startOnTime > 0)
@@ -1056,7 +1056,7 @@ class PlayState extends MusicBeatState
 					}
 				}
 			});
-			scripts.executeAllFunc("onCountdownTick", [swagCounter]);
+			scripts.executeAllFunc("countdownTick", [swagCounter]);
 
 			swagCounter += 1;
 		}, 5);
@@ -1139,7 +1139,7 @@ class PlayState extends MusicBeatState
 				}
 			});
 		}
-		scripts.executeAllFunc("onUpdateScore", [miss]);
+		scripts.executeAllFunc("updateScore", [miss]);
 	}
 
 	public function setSongTime(time:Float)
@@ -1203,7 +1203,7 @@ class PlayState extends MusicBeatState
 		DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter(), true, songLength);
 		#end
 
-		scripts.executeAllFunc("onSongStart");
+		scripts.executeAllFunc("songStart");
 	}
 
 	var debugNum:Int = 0;
@@ -1534,7 +1534,7 @@ class PlayState extends MusicBeatState
 
 			paused = false;
 
-			scripts.executeAllFunc("onResume");
+			scripts.executeAllFunc("resume");
 
 			#if desktop
 			if (startTimer != null && startTimer.finished)
@@ -1621,14 +1621,16 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
-		if (scripts != null) {
-			for (_ in scripts.scripts) {
+		if (scripts != null)
+		{
+			for (_ in scripts.scripts)
+			{
 				if (_ != null)
 					_.update(elapsed);
 			}
 		}
 		if (scripts != null)
-			scripts.executeAllFunc("onUpdate", [elapsed]);
+			scripts.executeAllFunc("update", [elapsed]);
 
 		if (!inCutscene)
 		{
@@ -1661,7 +1663,7 @@ class PlayState extends MusicBeatState
 
 		if (controls.PAUSE && startedCountdown && canPause)
 		{
-			if (!ScriptUtil.hasPause(scripts.executeAllFunc("onPause")))
+			if (!ScriptUtil.hasPause(scripts.executeAllFunc("pause")))
 				openPauseMenu();
 		}
 
@@ -1791,7 +1793,7 @@ class PlayState extends MusicBeatState
 				notes.insert(0, dunceNote);
 				dunceNote.spawned = true;
 
-				scripts.executeAllFunc("onSpawnNote", [dunceNote]);
+				scripts.executeAllFunc("spawnNote", [dunceNote]);
 
 				var index:Int = unspawnNotes.indexOf(dunceNote);
 				unspawnNotes.splice(index, 1);
@@ -1975,7 +1977,7 @@ class PlayState extends MusicBeatState
 		#end
 
 		if (scripts != null)
-			scripts.executeAllFunc("onUpdatePost", [elapsed]);
+			scripts.executeAllFunc("updatePost", [elapsed]);
 	}
 
 	function openPauseMenu()
@@ -2016,7 +2018,7 @@ class PlayState extends MusicBeatState
 	{
 		if (((skipHealthCheck && false) || health <= 0) && !practiceMode && !isDead)
 		{
-			if (ScriptUtil.hasPause(scripts.executeAllFunc("onGameOver")))
+			if (ScriptUtil.hasPause(scripts.executeAllFunc("gameOver")))
 				return true;
 
 			boyfriend.stunned = true;
@@ -2296,7 +2298,7 @@ class PlayState extends MusicBeatState
 				}
 		}
 
-		scripts.executeAllFunc("onEvent", [eventName, value1, value2]);
+		scripts.executeAllFunc("event", [eventName, value1, value2]);
 	}
 
 	function moveCameraSection():Void
@@ -2434,7 +2436,7 @@ class PlayState extends MusicBeatState
 		deathCounter = 0;
 		seenCutscene = false;
 
-		if (ScriptUtil.hasPause(scripts.executeAllFunc("onEndSong")))
+		if (ScriptUtil.hasPause(scripts.executeAllFunc("endSong")))
 			return;
 
 		if (SONG.validScore)
@@ -2835,7 +2837,7 @@ class PlayState extends MusicBeatState
 				}
 				else
 				{
-					scripts.executeAllFunc("onGhostTap", [key]);
+					scripts.executeAllFunc("ghostTap", [key]);
 					if (canMiss)
 					{
 						noteMissPress(key);
@@ -3309,7 +3311,7 @@ class PlayState extends MusicBeatState
 		// THANKS :)) - LUNAR
 
 		scripts.setAll("curStep", curStep);
-		scripts.executeAllFunc("onStepHit");
+		scripts.executeAllFunc("stepHit", [curStep]);
 
 		lastStepHit = curStep;
 	}
@@ -3360,7 +3362,7 @@ class PlayState extends MusicBeatState
 		}
 
 		scripts.setAll("curBeat", curBeat);
-		scripts.executeAllFunc("onBeatHit");
+		scripts.executeAllFunc("beatHit", [beatHit]);
 
 		lastBeatHit = curBeat;
 	}
@@ -3415,7 +3417,7 @@ class PlayState extends MusicBeatState
 
 	public function RecalculateRating(badHit:Bool = false)
 	{
-		if (ScriptUtil.hasPause(scripts.executeAllFunc("onRecalculateRating")))
+		if (ScriptUtil.hasPause(scripts.executeAllFunc("recalculateRating")))
 		{
 			if (totalPlayed < 1) // Prevent divide by 0
 				ratingName = '?';
@@ -3518,8 +3520,6 @@ class PlayState extends MusicBeatState
 			if (scripts.getScriptByTag(scriptName) == null)
 				scripts.addScript(scriptName).executeString(hx);
 		}
-
-		scripts.reloadScriptInteractions();
 	}
 
 	function initCharScript(char:Character)
@@ -3545,8 +3545,6 @@ class PlayState extends MusicBeatState
 		{
 			if (scripts.getScriptByTag(name) == null)
 				scripts.addScript(name).executeString(hx);
-
-			scripts.reloadScriptInteractions();
 		}
 	}
 
@@ -3555,28 +3553,28 @@ class PlayState extends MusicBeatState
 		script.set("PlayState", instance);
 
 		// FUNCTIONS
-		script.set("onStartCountdown", () -> {});
-		script.set("onCreate", () -> {});
-		script.set("onCountdownTick", (tick:Int) -> {});
-		script.set("onUpdateScore", (miss:Bool) -> {});
-		script.set("onSongStart", () -> {});
+		script.set("startCountdown", () -> {});
+		script.set("create", () -> {});
+		script.set("countdownTick", (tick:Int) -> {});
+		script.set("updateScore", (miss:Bool) -> {});
+		script.set("songStart", () -> {});
 		script.set("eventEarlyTrigger", (event:String) -> {});
-		script.set("onResume", () -> {});
-		script.set("onUupdate", (elapsed:Float) -> {});
-		script.set("onPause", () -> {});
-		script.set("onSpawnNote", (note:Note) -> {});
-		script.set("onUpdatePost", (elapsed:Float) -> {});
-		script.set("onGameOver", () -> {});
-		script.set("onEvent", (name:String, val1:Dynamic, val2:Dynamic) -> {});
-		script.set("onEndSong", () -> {});
-		script.set("onGhostTap", (key:Int) -> {});
+		script.set("resume", () -> {});
+		script.set("update", (elapsed:Float) -> {});
+		script.set("pause", () -> {});
+		script.set("spawnNote", (note:Note) -> {});
+		script.set("updatePost", (elapsed:Float) -> {});
+		script.set("gameOver", () -> {});
+		script.set("event", (name:String, val1:Dynamic, val2:Dynamic) -> {});
+		script.set("endSong", () -> {});
+		script.set("ghostTap", (key:Int) -> {});
 		script.set("noteMiss", (note:Note) -> {});
 		script.set("noteMissPress", (dir:Int) -> {});
 		script.set("opponentNoteHit", (note:Note) -> {});
 		script.set("goodNoteHit", (note:Note) -> {});
-		script.set("onStepHit", () -> {});
-		script.set("onBeatHit", () -> {});
-		script.set("onRecalculateRating", () -> {});
+		script.set("stepHit", (step:Int) -> {});
+		script.set("beatHit", (beat:Int) -> {});
+		script.set("recalculateRating", () -> {});
 
 		// VARIABLES
 		script.set("curStep", -1);
@@ -3660,8 +3658,6 @@ class PlayState extends MusicBeatState
 			{
 				if (scripts.getScriptByTag(scriptName) == null)
 					scripts.addScript(scriptName).executeString(hx);
-
-				scripts.reloadScriptInteractions();
 			}
 		});
 	}

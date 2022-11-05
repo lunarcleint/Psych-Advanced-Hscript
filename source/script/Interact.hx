@@ -29,7 +29,6 @@ class Interact extends FlxBasic
 		if (parent == null)
 			return;
 
-		// Var Name => Var Orgin (in variables or locals)
 		var newVars:Array<String> = [];
 
 		@:privateAccess

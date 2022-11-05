@@ -107,30 +107,4 @@ class ScriptGroup extends FlxBasic
 
 		scripts = [];
 	}
-
-	public function reloadScriptInteractions()
-	{
-		for (script in scripts)
-		{
-			if (script.interacter.presetVars == [])
-				continue;
-
-			script.interacter.upadteObj();
-
-			for (_ in scripts)
-			{
-				if (_ == null || script == _)
-					continue;
-
-				if (_.variables.exists(script.name))
-				{
-					script.error(script.name + " is alreadly a variable in the script, please change the variable to a different name!",
-						'${script.name}: Interation Error!');
-					continue;
-				}
-
-				_.set(script.name, script.interacter.interactObj);
-			}
-		}
-	}
 }

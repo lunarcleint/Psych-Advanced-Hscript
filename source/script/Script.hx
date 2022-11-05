@@ -8,6 +8,8 @@ import hscript.Expr;
 import hscript.Interp;
 import hscript.Parser;
 import openfl.Lib;
+import sys.FileSystem;
+import sys.io.File;
 
 using StringTools;
 
@@ -34,7 +36,6 @@ class Script extends FlxBasic
 	var _interp:Interp;
 
 	public var name:Null<String> = "_hscript";
-
 	public var interacter:Interact;
 
 	var _group:Null<ScriptGroup>;
@@ -92,7 +93,19 @@ class Script extends FlxBasic
 					stringName = arr[arr.length - 1];
 				}
 
-				set(stringName, clas);
+				@:privateAccess
+				if (!variables.exists(stringName) && !_interp.locals.exists(stringName))
+				{
+					set(stringName, clas);
+
+					if (interacter.presetVars != [])
+						interacter.presetVars.push(stringName);
+				}
+				else
+				{
+					error('$stringName is alreadly a variable in the script, please change the variable to a different name!',
+						'${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Import Error!');
+				}
 			}
 			catch (e)
 			{
@@ -100,7 +113,62 @@ class Script extends FlxBasic
 			}
 		});
 
+		set("addScript", function(scriptName:String):Dynamic
+		{
+			var hx:Null<String> = null;
+
+			for (extn in ScriptUtil.extns)
+			{
+				var path:String = 'assets/scripts/$scriptName.$extn';
+
+				if (FileSystem.exists(path))
+				{
+					hx = File.getContent(path);
+					break;
+				}
+			}
+
+			if (hx != null)
+			{
+				if (_group.getScriptByTag(scriptName) == null)
+					_group.addScript(scriptName).executeString(hx);
+
+				return _group.getScriptByTag(scriptName).interacter.interactObj;
+			}
+			return null;
+		});
+
+		set("getScript", function(scriptName:String):Null<Dynamic>
+		{
+			if (scriptName == name)
+			{
+				error('Cannot import current script!', '${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Getting Error!');
+				return null;
+			}
+
+			var script:Null<Script> = _group.getScriptByTag(scriptName);
+
+			if (script != null && script.interacter.presetVars != [])
+			{
+				return script.interacter.interactObj;
+			}
+			else
+			{
+				if (script == null)
+					error('Script "$scriptName" not found!', '${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Getting Error!');
+				else
+				{
+					error('Script "$scriptName" is not ready for getting!',
+						'${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Getting Error!');
+				}
+
+				return null;
+			}
+		});
+
 		set("ScriptReturn", ScriptReturn);
+		set("PAUSE", ScriptReturn.PUASE);
+		set("CONTINUE", ScriptReturn.CONTINUE);
 	}
 
 	public inline function get(name:String):Dynamic
@@ -170,21 +238,10 @@ class Script extends FlxBasic
 
 	public override function update(elapsed:Float)
 	{
-		/*
-			 
-			if (_interp != null)
-			{
-				@:privateAccess
-				var curExpr:Expr = _interp.curExpr;
-
-				if (lastExpr != curExpr)
-				{
-					lastExpr = curExpr;
-					trace(lastExpr);
-				}
-			}
-		 */
-
+		if (interacter.presetVars != [])
+		{
+			interacter.upadteObj();
+		}
 		super.update(elapsed);
 	}
 
