@@ -35,6 +35,12 @@ class Script extends FlxBasic
 
 	public var name:Null<String> = "_hscript";
 
+	public var interacter:Interact;
+
+	var _group:Null<ScriptGroup>;
+
+	var lastExpr:Expr = null;
+
 	public function new()
 	{
 		super();
@@ -43,6 +49,8 @@ class Script extends FlxBasic
 		_parser.allowTypes = true;
 
 		_interp = new Interp();
+
+		interacter = new Interact(this);
 
 		set("new", function() {});
 		set("destroy", function() {});
@@ -64,7 +72,7 @@ class Script extends FlxBasic
 			{
 				if (path == null || path == "")
 				{
-					error("Path Not Specified!", '${name}: Import Error!');
+					error("Path Not Specified!", '${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Import Error!');
 					return;
 				}
 
@@ -72,7 +80,7 @@ class Script extends FlxBasic
 
 				if (clas == null)
 				{
-					error('Class Not Found!\nPath: ${path}', '${name}: Import Error!');
+					error('Class Not Found!\nPath: ${path}', '${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Import Error!');
 					return;
 				}
 
@@ -90,7 +98,7 @@ class Script extends FlxBasic
 			}
 			catch (e)
 			{
-				error('${e}', '${name}: Import Error!');
+				error('${e}', '${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Import Error!');
 			}
 		});
 
@@ -134,7 +142,7 @@ class Script extends FlxBasic
 		}
 		catch (e)
 		{
-			error('${e}', '${name}: Function Error');
+			error('$e', '${name}:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Function Error');
 			return null;
 		}
 	}
@@ -157,17 +165,41 @@ class Script extends FlxBasic
 		catch (e:Dynamic)
 		{
 			error('${name}:${_parser.line}: characters ${e.pmin} - ${e.pmax}: ${StringTools.replace(e,'${name}:${_parser.line}:', '')}',
-				'${name}: Script Parser Error!');
+				'${name}:${_parser}: Script Parser Error!');
 			return null;
 		}
+	}
+
+	public override function update(elapsed:Float)
+	{
+		/*
+			 
+			if (_interp != null)
+			{
+				@:privateAccess
+				var curExpr:Expr = _interp.curExpr;
+
+				if (lastExpr != curExpr)
+				{
+					lastExpr = curExpr;
+					trace(lastExpr);
+				}
+			}
+		 */
+
+		super.update(elapsed);
 	}
 
 	function execute(ast:Expr):Dynamic
 	{
 		try
 		{
+			interacter.loadPresetVars();
+
 			var val = _interp.execute(ast);
 			executeFunc("new");
+
+			interacter.upadteObj();
 
 			return val;
 		}
@@ -180,7 +212,7 @@ class Script extends FlxBasic
 
 	public function error(errorMsg:String, ?winTitle:Null<String>)
 	{
-		Log.trace(errorMsg, null);
+		trace(errorMsg);
 		Lib.application.window.alert(errorMsg, winTitle != null ? winTitle : '${name}: Script Error!');
 	}
 
@@ -188,14 +220,19 @@ class Script extends FlxBasic
 	{
 		super.destroy();
 
-		var destroy = get("destroy");
-
-		if (destroy != null && Reflect.isFunction(destroy))
-			return destroy();
+		executeFunc("destroy");
 
 		_interp = null;
 		_parser = null;
 
+		interacter.destroy();
+		interacter = null;
+
 		return null;
+	}
+
+	function getCurLine():Null<Int>
+	{
+		return _interp.posInfos() != null ? _interp.posInfos().lineNumber : null;
 	}
 }

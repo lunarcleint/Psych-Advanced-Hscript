@@ -282,7 +282,7 @@ class PlayState extends MusicBeatState
 		instance = this;
 
 		scripts = new ScriptGroup();
-		scripts.onAddScript = onAddScript;
+		scripts.onAddScript.push(onAddScript);
 		Character.onCreate = initCharScript;
 
 		debugKeysChart = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_1'));
@@ -1621,6 +1621,12 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		if (scripts != null) {
+			for (_ in scripts.scripts) {
+				if (_ != null)
+					_.update(elapsed);
+			}
+		}
 		if (scripts != null)
 			scripts.executeAllFunc("onUpdate", [elapsed]);
 
@@ -3512,6 +3518,8 @@ class PlayState extends MusicBeatState
 			if (scripts.getScriptByTag(scriptName) == null)
 				scripts.addScript(scriptName).executeString(hx);
 		}
+
+		scripts.reloadScriptInteractions();
 	}
 
 	function initCharScript(char:Character)
@@ -3533,7 +3541,13 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		scripts.addScript(name).executeString(hx);
+		if (hx != null)
+		{
+			if (scripts.getScriptByTag(name) == null)
+				scripts.addScript(name).executeString(hx);
+
+			scripts.reloadScriptInteractions();
+		}
 	}
 
 	function onAddScript(script:Script)
@@ -3646,20 +3660,10 @@ class PlayState extends MusicBeatState
 			{
 				if (scripts.getScriptByTag(scriptName) == null)
 					scripts.addScript(scriptName).executeString(hx);
+
+				scripts.reloadScriptInteractions();
 			}
 		});
-	}
-
-	function addShaderToCamera(camera:FlxCamera, shader:FlxShader)
-	{
-		if (camera == null || shader == null)
-			return;
-
-		@:privateAccess
-		var camShaders:Array<BitmapFilter> = camera._filters;
-		camShaders.push(cast new ShaderFilter(shader));
-
-		camera.setFilters(camShaders);
 	}
 
 	public static inline function getInstance()

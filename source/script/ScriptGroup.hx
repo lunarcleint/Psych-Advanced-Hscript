@@ -6,7 +6,12 @@ class ScriptGroup extends FlxBasic
 {
 	public var scripts:Array<Script> = [];
 
-	public var onAddScript:Script->Void;
+	public var onAddScript:Array<Script->Void> = [];
+
+	public override function new()
+	{
+		super();
+	}
 
 	public function addScript(tag:String):Script
 	{
@@ -14,29 +19,22 @@ class ScriptGroup extends FlxBasic
 		ScriptUtil.setUpFlixelScript(script);
 		ScriptUtil.setUpFNFScript(script);
 
+		@:privateAccess
+		script._group = this;
+
 		script.set("name", tag);
 		script.name = tag;
 
-		if (onAddScript != null)
-			onAddScript(script);
+		for (func in onAddScript)
+		{
+			if (func == null)
+				continue;
+			func(script);
+		}
 
 		scripts.push(script);
 
 		return script;
-	}
-
-	public function destroyScripts()
-	{
-		for (_ in scripts)
-		{
-			if (_ == null)
-				continue;
-
-			_.destroy();
-			_ = null;
-		}
-
-		scripts = [];
 	}
 
 	public function executeAllFunc(name:String, ?args:Array<Any>):Array<Dynamic>
@@ -98,6 +96,41 @@ class ScriptGroup extends FlxBasic
 	{
 		super.destroy();
 
-		destroyScripts();
+		for (_ in scripts)
+		{
+			if (_ == null)
+				continue;
+
+			_.destroy();
+			_ = null;
+		}
+
+		scripts = [];
+	}
+
+	public function reloadScriptInteractions()
+	{
+		for (script in scripts)
+		{
+			if (script.interacter.presetVars == [])
+				continue;
+
+			script.interacter.upadteObj();
+
+			for (_ in scripts)
+			{
+				if (_ == null || script == _)
+					continue;
+
+				if (_.variables.exists(script.name))
+				{
+					script.error(script.name + " is alreadly a variable in the script, please change the variable to a different name!",
+						'${script.name}: Interation Error!');
+					continue;
+				}
+
+				_.set(script.name, script.interacter.interactObj);
+			}
+		}
 	}
 }
