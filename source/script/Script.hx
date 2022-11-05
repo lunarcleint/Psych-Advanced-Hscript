@@ -39,8 +39,6 @@ class Script extends FlxBasic
 
 	var _group:Null<ScriptGroup>;
 
-	var lastExpr:Expr = null;
-
 	public function new()
 	{
 		super();
@@ -165,7 +163,7 @@ class Script extends FlxBasic
 		catch (e:Dynamic)
 		{
 			error('${name}:${_parser.line}: characters ${e.pmin} - ${e.pmax}: ${StringTools.replace(e,'${name}:${_parser.line}:', '')}',
-				'${name}:${_parser}: Script Parser Error!');
+				'${name}:${_parser.line}: Script Parser Error!');
 			return null;
 		}
 	}

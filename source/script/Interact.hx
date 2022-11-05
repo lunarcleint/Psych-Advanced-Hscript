@@ -71,7 +71,7 @@ class Interact extends FlxBasic
 			}
 			catch (e)
 			{
-				parent.error("INTERACTION ERROR: " + Std.string(e), '${parent.name}: Interaction');
+				parent.error("INTERACTION ERROR: " + Std.string(e), '${parent.name}: Interaction Error!');
 			}
 		}
 	}
