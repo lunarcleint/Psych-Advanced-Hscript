@@ -182,8 +182,6 @@ class Script extends FlxBasic
 		});
 
 		set("ScriptReturn", ScriptReturn);
-		set("PAUSE", ScriptReturn.PUASE);
-		set("CONTINUE", ScriptReturn.CONTINUE);
 	}
 
 	public inline function get(name:String):Dynamic
