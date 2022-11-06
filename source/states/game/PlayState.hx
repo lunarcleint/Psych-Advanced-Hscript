@@ -3599,10 +3599,6 @@ class PlayState extends MusicBeatState
 
 		script.set("unspawnNotes", unspawnNotes);
 
-		// SHADERS
-		script.set("FlxRuntimeShader", FlxRuntimeShader);
-		script.set("ShaderUtil", ShaderUtil);
-
 		// MISC
 		script.set("add", function(obj:FlxBasic, ?front:Bool = false)
 		{
@@ -3629,28 +3625,6 @@ class PlayState extends MusicBeatState
 					}
 					PlayState.instance.insert(position, obj);
 				}
-			}
-		});
-
-		script.set("addScript", function(scriptName:String)
-		{
-			var hx:Null<String> = null;
-
-			for (extn in ScriptUtil.extns)
-			{
-				var path:String = 'assets/scripts/$scriptName.$extn';
-
-				if (FileSystem.exists(path))
-				{
-					hx = File.getContent(path);
-					break;
-				}
-			}
-
-			if (hx != null)
-			{
-				if (scripts.getScriptByTag(scriptName) == null)
-					scripts.addScript(scriptName).executeString(hx);
 			}
 		});
 	}

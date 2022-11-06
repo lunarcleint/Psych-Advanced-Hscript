@@ -1,6 +1,6 @@
 # Lunar's Advanced Psych Fork
 
-A bare-bones fork of psych engine designed to be soft coded in certian ways, but to be used with source code. Has support for advanced hscript intergrated with FNF.
+A bare-bones fork of psych engine designed to be soft coded in certain ways, but to be used with source code. Has support for advanced hscript integrated with FNF.
 
 **This fork will stay on Psych Engine V6.3 unless major features are added to future builds!**
 
@@ -8,11 +8,16 @@ A bare-bones fork of psych engine designed to be soft coded in certian ways, but
 
 ## Current Developement Status🟡
 
-Current Version: **v0.0.1**
+Current Version: **v0.0.2**
 
-The current build will be unfinished for awhile, please report any errors you get in the [Issues](https://github.com/lunarcleint/Psych-Advanced-Hscript/issues) tab!
+#### New Stuff:
+- [Script Interactions](https://github.com/lunarcleint/Psych-Advanced-Hscript/wiki/Script-API-2:-Script-Examples#adding-and-getting-a-script)
+- Better Error Handling
+- [Documation](https://github.com/lunarcleint/Psych-Advanced-Hscript/wiki) (LETS GO!!)
+
+Please report any errors you get in the [Issues](https://github.com/lunarcleint/Psych-Advanced-Hscript/issues) tab!
 
 ## Documenation
 
-Coming Soon! (I can't work git for shit)
+Check out the [Wiki](https://github.com/lunarcleint/Psych-Advanced-Hscript/wiki)!
 

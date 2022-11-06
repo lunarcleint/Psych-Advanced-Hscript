@@ -1,5 +1,6 @@
 package script;
 
+import StringTools;
 import data.ClientPrefs;
 import data.Highscore;
 import data.Paths;
@@ -18,6 +19,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import haxe.Json;
 import objects.Boyfriend;
 import objects.Character;
 import objects.Note;
@@ -33,10 +35,6 @@ import song.Section;
 import song.Song;
 import states.game.PlayState;
 import util.CoolUtil;
-import util.TimedEventHandler;
-
-using StringTools;
-
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -59,6 +57,7 @@ class ScriptUtil
 		script.set("Reflect", Reflect);
 		script.set("Math", Math);
 		script.set("StringTools", StringTools);
+		script.set("Json", {parse: Json.parse, stringify: Json.stringify});
 
 		#if sys
 		script.set("FileSystem", FileSystem);
@@ -163,9 +162,6 @@ class ScriptUtil
 		script.set("NoteSplash", NoteSplash);
 		script.set("Character", Character);
 		script.set("Boyfriend", Boyfriend);
-
-		// Misc
-		script.set("TimedEventHandler", TimedEventHandler);
 	}
 
 	public static inline function findScriptsInDir(path:String):Array<String>

@@ -4,6 +4,7 @@ import Type;
 import cpp.CPPInterface;
 import flixel.FlxBasic;
 import haxe.CallStack;
+import haxe.Json;
 import haxe.Log;
 import hscript.Expr;
 import hscript.Interp;
@@ -78,7 +79,7 @@ class Script extends FlxBasic
 					return;
 				}
 
-				var clas = Type.resolveClass(path); // ! class but without a s LMAO -lunar
+				var clas = Type.resolveClass(path);
 
 				if (clas == null)
 				{
