@@ -145,7 +145,7 @@ class Script extends FlxBasic
 							'$name:${getCurLine() != null ? Std.string(getCurLine()) : ''}: Script Adding Error!');
 				}
 
-				return _group.getScriptByTag(scriptName).interacter.interactObj;
+				return _group.getScriptByTag(scriptName).interacter.getNewObj();
 			}
 			else
 			{
@@ -166,7 +166,7 @@ class Script extends FlxBasic
 
 			if (script != null && script.interacter.presetVars != [])
 			{
-				return script.interacter.interactObj;
+				return script.interacter.getNewObj();
 			}
 			else
 			{
@@ -252,10 +252,8 @@ class Script extends FlxBasic
 
 	public override function update(elapsed:Float)
 	{
-		if (interacter.presetVars != [])
-		{
-			interacter.upadteObj();
-		}
+		interacter.upadteObjs();
+
 		executeFunc("update", [elapsed]);
 
 		super.update(elapsed);
@@ -270,7 +268,7 @@ class Script extends FlxBasic
 			var val = _interp.execute(ast);
 			executeFunc("new");
 
-			interacter.upadteObj();
+			interacter.upadteObjs();
 
 			return val;
 		}

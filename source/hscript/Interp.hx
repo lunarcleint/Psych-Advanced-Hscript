@@ -352,6 +352,22 @@ class Interp
 		return v;
 	}
 
+	function setExistingVar(id:String, val:Dynamic)
+	{
+		if (locals.exists(id))
+		{
+			locals.get(id).r = val;
+		}
+		else if (variables.exists(id))
+		{
+			variables.set(id, val);
+		}
+		else
+		{
+			error(EUnknownVariable(id));
+		}
+	}
+
 	public function expr(e:Expr):Dynamic
 	{
 		#if hscriptPos

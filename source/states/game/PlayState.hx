@@ -3544,7 +3544,7 @@ class PlayState extends MusicBeatState
 
 	function onAddScript(script:Script)
 	{
-		script.set("PlayState", instance);
+		script.set("PlayState", PlayState);
 
 		// FUNCTIONS
 		script.set("startCountdown", () -> {});

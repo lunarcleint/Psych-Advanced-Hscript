@@ -8,7 +8,7 @@ class Interact extends FlxBasic
 
 	var parent:Script;
 
-	public var interactObj:Dynamic = {};
+	public var interactObjs:Array<Dynamic> = [];
 
 	public function new(_:Script)
 	{
@@ -24,10 +24,93 @@ class Interact extends FlxBasic
 		}
 	}
 
-	public function upadteObj()
+	public function getNewObj():Dynamic
 	{
-		if (parent == null)
+		var newObj:Dynamic = {};
+		interactObjs.push(newObj);
+
+		if (presetVars != [])
+		{
+			updateObjVars(newObj);
+		}
+
+		return newObj;
+	}
+
+	public function upadteObjs()
+	{
+		if (presetVars == [])
 			return;
+
+		for (obj in interactObjs)
+		{
+			if (obj == null)
+				continue;
+
+			updateObjVars(obj);
+		}
+	}
+
+	function updateObjVars(interactObj:Dynamic)
+	{
+		var newVars:Array<String> = getObjsNewVars(interactObj);
+		var varsToUpdate:Map<String, Dynamic> = getVarsToUpdate(interactObj);
+
+		for (varName in newVars)
+		{
+			try
+			{
+				if (varsToUpdate.exists(varName))
+				{
+					@:privateAccess
+					parent._interp.setExistingVar(varName, varsToUpdate.get(varName));
+				}
+				else
+				{
+					@:privateAccess
+					var val:Dynamic = parent._interp.resolve(varName);
+					Reflect.setProperty(interactObj, varName, val);
+				}
+			}
+			catch (e)
+			{
+				parent.error("INTERACTION ERROR: " + Std.string(e), '${parent.name}: Interaction Error!');
+			}
+		}
+	}
+
+	function getVarsToUpdate(interactObj:Dynamic):Map<String, Dynamic>
+	{
+		var newVars:Array<String> = getObjsNewVars(interactObj);
+
+		var varsToUpdate:Map<String, Dynamic> = [];
+
+		if (interactObj != null && interactObj != {})
+		{
+			for (fieldName in Reflect.fields(interactObj))
+			{
+				if (!newVars.contains(fieldName))
+					continue;
+				try
+				{
+					@:privateAccess
+					var curVal:Dynamic = parent._interp.resolve(fieldName);
+
+					if (Reflect.getProperty(interactObj, fieldName) != curVal)
+					{
+						varsToUpdate.set(fieldName, Reflect.getProperty(interactObj, fieldName));
+					}
+				}
+			}
+		}
+
+		return varsToUpdate;
+	}
+
+	function getObjsNewVars(interactObj:Dynamic):Array<String>
+	{
+		if (presetVars == [])
+			return [];
 
 		var newVars:Array<String> = [];
 
@@ -59,19 +142,6 @@ class Interact extends FlxBasic
 			}
 		}
 
-		for (varName in newVars)
-		{
-			try
-			{
-				@:privateAccess
-				var val:Dynamic = parent._interp.resolve(varName);
-
-				Reflect.setProperty(interactObj, varName, val);
-			}
-			catch (e)
-			{
-				parent.error("INTERACTION ERROR: " + Std.string(e), '${parent.name}: Interaction Error!');
-			}
-		}
+		return newVars;
 	}
 }
