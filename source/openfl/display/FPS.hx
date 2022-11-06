@@ -85,10 +85,10 @@ class FPS extends TextField
 	{
 		var size:Float = num;
 		var data = 0;
-		while (size > 1024 && data < dataTexts.length - 1)
+		while (size > 999 && data < dataTexts.length - 1)
 		{
 			data++;
-			size = size / 1024;
+			size = size / 999;
 		}
 
 		size = Math.round(size * 100) / 100;
