@@ -463,6 +463,8 @@ class PlayState extends MusicBeatState
 
 		initScripts();
 
+		initSongEvents();
+
 		switch (curStage)
 		{
 			case 'stage': // Week 1
@@ -3270,6 +3272,13 @@ class PlayState extends MusicBeatState
 		FlxG.sound.music.pitch = 1;
 
 		Character.onCreate = null;
+
+		for (event in eventsPushed)
+		{
+			ChartingState.eventStuff.remove(event);
+			eventsPushed.remove(event);
+		}
+
 		scripts.destroy();
 
 		super.destroy();
@@ -3465,8 +3474,11 @@ class PlayState extends MusicBeatState
 		// SONG && GLOBAL SCRIPTS
 		var files:Array<String> = SONG.song == null ? [] : ScriptUtil.findScriptsInDir(Paths.getPreloadPath("data/" + Paths.formatToSongPath(SONG.song)));
 
-		for (_ in ScriptUtil.findScriptsInDir("assets/scripts/global"))
-			files.push(_);
+		if (FileSystem.exists("assets/scripts/global"))
+		{
+			for (_ in ScriptUtil.findScriptsInDir("assets/scripts/global"))
+				files.push(_);
+		}
 
 		for (file in files)
 		{
@@ -3513,8 +3525,73 @@ class PlayState extends MusicBeatState
 		{
 			if (scripts.getScriptByTag(scriptName) == null)
 				scripts.addScript(scriptName).executeString(hx);
+			else
+			{
+				scripts.getScriptByTag(scriptName).error("Duplacite Script Error!", '$scriptName: Duplicate Script');
+			}
 		}
 	}
+
+	private var eventsPushed:Array<Dynamic> = [];
+
+	public function initSongEvents()
+	{
+		if (!FileSystem.exists("assets/scripts/events"))
+			return;
+
+		var jsonFiles:Array<String> = CoolUtil.findFilesInPath("assets/scripts/events", ["json"], true, false);
+
+		var hxFiles:Map<String, String> = [];
+
+		if (FileSystem.exists('assets/scripts/events/${Paths.formatToSongPath(SONG.song)}'))
+		{
+			for (file in CoolUtil.findFilesInPath('assets/scripts/events/${Paths.formatToSongPath(SONG.song)}', ["json"], true, true))
+				jsonFiles.push(file);
+		}
+
+		for (file in jsonFiles)
+		{
+			var json:{val1:String, val2:String} = {val1: null, val2: null};
+			if (FileSystem.exists(file))
+			{
+				try
+				{
+					json = cast Json.parse(File.getContent(file));
+				}
+				catch (e)
+				{
+					trace(e);
+				}
+			}
+
+			var eventName:String = CoolUtil.getFileStringFromPath(file);
+
+			eventsPushed.push([eventName, '${json.val1}\n${json.val2}']);
+			ChartingState.eventStuff.push([eventName, '${json.val1}\n${json.val2}']);
+
+			for (extn in ScriptUtil.extns)
+			{
+				var path:String = file.replace(".json", '.$extn');
+				if (FileSystem.exists(path))
+				{
+					hxFiles.set(CoolUtil.getFileStringFromPath(path), File.getContent(path));
+					break;
+				}
+			}
+		}
+
+		for (scriptName => hxData in hxFiles)
+		{
+			if (scripts.getScriptByTag(scriptName) == null)
+				scripts.addScript(scriptName).executeString(hxData);
+			else
+			{
+				scripts.getScriptByTag(scriptName).error("Duplacite Script Error!", '$scriptName: Duplicate Script');
+			}
+		}
+	}
+
+	function initEventScript(name:String) {}
 
 	function initCharScript(char:Character)
 	{
@@ -3539,6 +3616,10 @@ class PlayState extends MusicBeatState
 		{
 			if (scripts.getScriptByTag(name) == null)
 				scripts.addScript(name).executeString(hx);
+			else
+			{
+				scripts.getScriptByTag(name).error("Duplacite Script Error!", '$name: Duplicate Script');
+			}
 		}
 	}
 

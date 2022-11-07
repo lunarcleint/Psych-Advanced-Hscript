@@ -2,6 +2,8 @@ package script;
 
 import flixel.FlxBasic;
 
+using StringTools;
+
 class ScriptGroup extends FlxBasic
 {
 	public var scripts:Array<Script> = [];
@@ -24,7 +26,7 @@ class ScriptGroup extends FlxBasic
 		}
 	}
 
-	public function addScript(tag:String):Script
+	public function addScript(tag:Null<String>):Script
 	{
 		var script:Script = ScriptUtil.getBasicScript();
 		ScriptUtil.setUpFlixelScript(script);
@@ -33,8 +35,26 @@ class ScriptGroup extends FlxBasic
 		@:privateAccess
 		script._group = this;
 
-		script.set("name", tag);
-		script.name = tag;
+		if (tag != null)
+		{
+			script.set("name", tag);
+			script.name = tag;
+		}
+		else
+		{
+			var i:Int = 0;
+			for (script in scripts)
+			{
+				if (script == null)
+					continue;
+
+				if (script.name.toLowerCase().contains("_hscript"))
+					i++;
+			}
+
+			script.set("name", '_hscript$i');
+			script.name = '_hscript$i';
+		}
 
 		for (func in onAddScript)
 		{

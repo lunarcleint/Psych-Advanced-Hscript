@@ -168,7 +168,7 @@ class CoolUtil
 		return finalStr.toLowerCase();
 	}
 
-	public static function findFilesInPath(path:String, extns:Array<String>, ?filePath:Bool = false):Array<String>
+	public static function findFilesInPath(path:String, extns:Array<String>, ?filePath:Bool = false, ?deepSearch:Bool = true):Array<String>
 	{
 		var files:Array<String> = [];
 
@@ -190,7 +190,7 @@ class CoolUtil
 						}
 					}
 				}
-				else // ! YAY !!!! -lunar
+				else if (deepSearch) // ! YAY !!!! -lunar
 				{
 					var pathsFiles:Array<String> = findFilesInPath(path, extns);
 

@@ -84,7 +84,8 @@ class ChartingState extends MusicBeatState
 
 	var undos = [];
 	var redos = [];
-	var eventStuff:Array<Dynamic> = [
+
+	public static var eventStuff:Array<Dynamic> = [
 		['', "Nothing. Yep, that's right."],
 		[
 			'Dadbattle Spotlight',
