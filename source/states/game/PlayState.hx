@@ -3420,7 +3420,7 @@ class PlayState extends MusicBeatState
 
 	public function RecalculateRating(badHit:Bool = false)
 	{
-		if (ScriptUtil.hasPause(scripts.executeAllFunc("recalculateRating")))
+		if (!ScriptUtil.hasPause(scripts.executeAllFunc("recalculateRating")))
 		{
 			if (totalPlayed < 1) // Prevent divide by 0
 				ratingName = '?';
