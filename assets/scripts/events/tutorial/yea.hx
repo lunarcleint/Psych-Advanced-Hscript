@@ -1,5 +1,0 @@
-//
-function new()
-{
-	trace(name);
-}
