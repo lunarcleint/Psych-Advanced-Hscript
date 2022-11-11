@@ -4,6 +4,8 @@ A bare-bones fork of psych engine designed to be soft coded in certain ways, but
 
 **This fork will stay on Psych Engine V6.3 unless major features are added to future builds!**
 
+**Fork will stay unofficial, and never ever will be official, due to issues relating to ShadowMario & the Owner**
+
 ![Minecraft Steve](https://i.imgur.com/fRACgfU.png)
 
 ## Current Developement Status🟡
