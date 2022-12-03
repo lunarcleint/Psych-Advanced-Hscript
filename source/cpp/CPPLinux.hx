@@ -5,14 +5,14 @@ import cpp.Native;
 import cpp.UInt64;
 
 #if cpp
-#if linux
+#if (linux || android)
 @:headerCode("#include <stdio.h>")
 #end
 #end
 class CPPLinux
 {
 	#if cpp
-	#if linux
+	#if (linux || android)
 	@:functionCode('
 		FILE *meminfo = fopen("/proc/meminfo", "r");
 
